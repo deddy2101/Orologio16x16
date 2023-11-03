@@ -1,17 +1,13 @@
 #include <Arduino.h>
-/* Arduino 256 RGB LEDs Matrix Animation Frame 
- * Using WS2812 LED Strips
- 
-Created by Yvan / https://Brainy-Bits.com
-
-This code is in the public domain...
-
-You can: copy it, use it, modify it, share it or just plain ignore it!
-Thx!
-
-*/
-
 #include "FastLED.h"       // Fastled library to control the LEDs
+#include "DS3231.h"        // DS3231 library to control the RTC
+#include <Wire.h>
+
+//RTC OBJECT CREATION
+RTClib myRTC;
+DS3231 Clock;
+
+
 
 // How many leds are connected?
 #define NUM_LEDS 256
@@ -123,8 +119,7 @@ const long BombJack01[] PROGMEM =
 0x333366, 0x333366, 0x333366, 0x333366, 0x333366, 0x000000, 0x000000, 0x000000, 0x333366, 0x000000, 0x000000, 0x000000, 0x333366, 0x333366, 0x333366, 0x333366
 };
 
-const long BombJack02[] PROGMEM =
-{
+const long BombJack02[] PROGMEM ={
 0x333366, 0x333366, 0x333366, 0x333366, 0x333366, 0x333366, 0x333366, 0x333366, 0x333366, 0x333366, 0x333366, 0x333366, 0x333366, 0x333366, 0x333366, 0x333366, 
 0x333366, 0x333366, 0x333366, 0x0099ff, 0x333366, 0x333366, 0x0099ff, 0x0099ff, 0x0099ff, 0x0099ff, 0x0099ff, 0x333366, 0x333366, 0x0099ff, 0x333366, 0x333366, 
 0x333366, 0x333366, 0x0099ff, 0x0099ff, 0x0099ff, 0x0099ff, 0x0099ff, 0x0099ff, 0x0099ff, 0x0099ff, 0x0099ff, 0x0099ff, 0x0099ff, 0x333366, 0x333366, 0x333366, 
@@ -144,32 +139,21 @@ const long BombJack02[] PROGMEM =
 };
 
 
-
-void displayTime(int hours, int minutes) {
-  int digitWidth = 4;  // Larghezza di ogni cifra
-  int digitHeight = 7; // Altezza di ogni cifra
-
-  int hourTens = hours / 10;
-  int hourOnes = hours % 10;
-  int minTens = minutes / 10;
-  int minOnes = minutes % 10;
-
-byte digits[10][7] = {
+const byte digits[10][7]  = {
     {B0001111, B1011001, B1011001, B1011001, B1011001, B1011001, B0001111}, // 0
     {B0000110, B0001010, B0000010, B0000010, B0000010, B0000010, B1101111}, // 1
     {B0101111, B0000001, B0000001, B1101111, B1001000, B1001000, B1101111}, // 2
     {B1101111, B0000001, B0000001, B0101111, B0000001, B0000001, B1101111}, // 3
-    {B1000001, B1000001, B1000001, B1111111, B0000001, B0000001, B0000001}, // 4
-    {B1111110, B1000000, B1000000, B1111110, B0000001, B0000001, B1111110}, // 5
-    {B0111110, B1000000, B1000000, B1111110, B1000001, B1000001, B0111110}, // 6
+    {B1001001, B1001001, B1001001, B1111111, B0000001, B0000001, B0000001}, // 4
+    {B1111111, B1001000, B1001000, B1111111, B0000001, B0000001, B1111111}, // 5
+    {B0111111, B1001000, B1001000, B1111111, B1001001, B1001001, B0111111}, // 6
     {B1111111, B0000001, B0000001, B0000001, B0000001, B0000001, B0000001}, // 7
     {B0001111, B1011001, B1011001, B1011111, B1011001, B1011001, B0001111}, // 8
     {B0001111, B1011001, B1011001, B1011111, B1010001, B1010001, B0001111}  // 9
   };
 
-
-  // Mappa la disposizione dei LED nella tua matrice
-int ledMap[] = {
+    // Mappa la disposizione dei LED nella tua matrice
+const uint8_t ledMap[] = {
     15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0,
     16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
     47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32,
@@ -188,25 +172,34 @@ int ledMap[] = {
     240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255
 };
 
-  // Visualizza l'ora sulla matrice di LED
-  for (int i = 0; i < NUM_LEDS; i++) {
-    leds[i] = CRGB::Black; // Cancella la matrice
-  }
+void displayTime(int hours, int minutes) {
+  int digitWidth = 4;  // Larghezza di ogni cifra
+  int digitHeight = 7; // Altezza di ogni cifra
+
+  int hourTens = hours / 10;
+  int hourOnes = hours % 10;
+  int minTens = minutes / 10;
+  int minOnes = minutes % 10;
+
+   FastLED.clear(); // Pulisci la matrice di LED
+
+
+ 
 
   // Disegna le cifre
   for (int i = 0; i < digitHeight; i++) {
     for (int j = 0; j < digitWidth; j++) {
        if (digits[hourTens][i] & (1 << (digitWidth - 1 - j))) {
-        leds[ledMap[i * digitWidth + j + (12*i)]] = CRGB::Purple; //12 per w= 4 11 per w=5
+        leds[ledMap[i * digitWidth + j + (12*i)]] = CRGB::Blue; //12 per w= 4 11 per w=5
       }
       if (digits[hourOnes][i] & (1 << (digitWidth - 1 - j))) {
-        leds[ledMap[i * digitWidth + j + 5 +(12*i)]] = CRGB::Purple;
+        leds[ledMap[i * digitWidth + j + 5 +(12*i)]] = CRGB::Blue;
       }
       if (digits[minTens][i] & (1 << (digitWidth - 1 - j))) {
-        leds[ledMap[i * digitWidth + j + 151 +(12*i)]] = CRGB::Purple;
+        leds[ledMap[i * digitWidth + j + 151 +(12*i)]] = CRGB::Blue;
       }
       if (digits[minOnes][i] & (1 << (digitWidth - 1 - j))) {
-        leds[ledMap[i * digitWidth + j + 156 +(12*i)]] = CRGB::Purple;
+        leds[ledMap[i * digitWidth + j + 156 +(12*i)]] = CRGB::Blue;
       }
 
     
@@ -219,33 +212,47 @@ int ledMap[] = {
 
 
 
-
-
-
-
 void setup() { 
+   Wire.begin(33,35);
+   Serial.begin(9600);
 FastLED.addLeds<WS2812B,DATA_PIN, GRB>(leds, NUM_LEDS);  // Init of the Fastled library
 FastLED.setBrightness(150);
 pinMode(15, OUTPUT);
 digitalWrite(15, HIGH);
-}
 
+
+
+
+}
+int hours = 00;
+  int minutes = 00;
 void loop() { 
  // Ottieni l'ora corrente (sostituisci questa parte con il codice per ottenere l'ora dal tuo sorgente dati)
-  int hours = 89;
-  int minutes = 23;
+  Serial.println("Reading time from RTC...");
+      DateTime now = myRTC.now();
+Serial.print(now.year(), DEC);
+    Serial.print('/');
+    Serial.print(now.month(), DEC);
+    Serial.print('/');
+    Serial.print(now.day(), DEC);
+    Serial.print(' ');
+    Serial.print(now.hour(), DEC);
+    Serial.print(':');
+    Serial.print(now.minute(), DEC);
+    Serial.print(':');
+    Serial.print(now.second(), DEC);
+    Serial.println();
 
-  displayTime(hours, minutes);
-  //for( int i=0; i<NUM_LEDS; i++) {
-  //  leds[i] = CRGB::Red;
-  //  FastLED.show();
- //   delay(100);
- // }
-  // Aggiungi un ritardo per evitare l'aggiornamento troppo veloce dell'orologio
 
-  delay(2000); // Aggiorna l'orologio ogni secondo
+  
 
-  FastLED.clear();
+  displayTime(now.hour(), now.minute());
+  delay(1000);
+ 
+
+  
+  /*
+   FastLED.clear();
 
   for( int i=0; i<10 ; i++) {
     for(int i = 0; i < NUM_LEDS; i++) {
@@ -265,6 +272,8 @@ for(int i = 0; i < NUM_LEDS; i++) {
 FastLED.show();
 delay(500);
   }
+  */
+ 
 
 
 
