@@ -109,7 +109,7 @@ void displayTime(int hours, int minutes)
 };
 
 
-void displayString(String text)
+void displayString(String text, bool scndRow = false)
 {
   int letterWidth = 5;  // Larghezza di ogni lettera
   int letterHeight = 7; // Altezza di ogni lettera
@@ -138,7 +138,7 @@ void displayString(String text)
         {
           if (letters[letterIndex][i] & (1 << (letterWidth - 1 - j)))
           {
-            leds[ledMap[ startX + i * letterWidth + j+ 144 + (11 * i)]] = CRGB::Red; // Usa il colore che desideri
+            leds[ledMap[ startX + i * letterWidth + j+ 144*scndRow + (11 * i)]] = CRGB::Red; // Usa il colore che desideri +144 per seconda riga
           }
         }
       }
@@ -149,4 +149,73 @@ void displayString(String text)
   }
 
   FastLED.show();
+}
+
+void displayDate(int datetime[3]) { // 0-6 = h,m,s,day,month,year, dayofweek
+  
+  // the first row displays the day of the week 1 as Monday and 7 as Sunday
+  
+  // the second row displays the day of the month and the month
+
+  //so for the first row we can use the function displayString
+  //for the second row we can use the function displayTime but we need to shift to the 2nd row
+  switch (datetime[2]) {
+    case 1:
+      displayString("MON");
+      break;
+    case 2:
+      displayString("TUE");
+      break;
+    case 3:
+      displayString("WED");
+      break;
+    case 4:
+      displayString("THU");
+      break;
+    case 5:
+      displayString("FRI");
+      break;
+    case 6:
+      displayString("SAT");
+      break;
+    case 7:
+      displayString("SUN");
+      break;
+  }
+  int digitWidth = 4;  // Larghezza di ogni cifra
+  int digitHeight = 7; // Altezza di ogni cifra
+
+  int dayTens = datetime[0] / 10;
+  int dayOnes = datetime[0] % 10;
+  int monthTens = datetime[1] / 10;
+  int monthOnes = datetime[1] % 10;
+
+
+  // Disegna le cifre
+  for (int i = 0; i < digitHeight; i++)
+  {
+    for (int j = 0; j < digitWidth; j++)
+    {
+      if (digits[dayTens][i] & (1 << (digitWidth - 1 - j)))
+      {
+        leds[ledMap[i * digitWidth + j +144 + (12 * i)]] = CRGB::Purple; // 12 per w= 4 11 per w=5
+      }
+      if (digits[dayOnes][i] & (1 << (digitWidth - 1 - j)))
+      {
+        leds[ledMap[i * digitWidth + j + 148 + (12 * i)]] = CRGB::Purple;
+      }
+      if (digits[monthTens][i] & (1 << (digitWidth - 1 - j)))
+      {
+        leds[ledMap[i * digitWidth + j + 152 + (12 * i)]] = CRGB::Green;
+      }
+      if (digits[monthOnes][i] & (1 << (digitWidth - 1 - j)))
+      {
+        leds[ledMap[i * digitWidth + j + 156 + (12 * i)]] = CRGB::Green;
+      }
+    }
+  }
+
+  FastLED.show();
+
+
 }

@@ -2,6 +2,8 @@
 #include <Wire.h>
 #include "images.h"
 #include "displayDefinitions.h"
+#include "wifisettings.h"
+#include "getTime.h"
 
 // RTC OBJECT CREATION
 RTClib myRTC;
@@ -22,10 +24,28 @@ void rainbow()
 
 void setup()
 {
+  int datetime[7];
+  Serial.begin(9600);
+  Wire.begin(33, 35);
   FastLED.addLeds<WS2812B, 3, GRB>(leds, 256);
   FastLED.setBrightness(150);
-  Wire.begin(33, 35);
-  Serial.begin(9600);
+  displayString("CNN");
+  if (initWIFI()) {
+    displayString("OK");
+  }
+  delay(2000);
+  initgetTime();
+  getDateTime(datetime);
+  Clock.setDate(datetime[3]);
+  Clock.setMonth(datetime[4]);
+  Clock.setYear(datetime[6]);
+  Clock.setHour(datetime[0]);
+  Clock.setMinute(datetime[1]);
+  Clock.setSecond(datetime[2]);
+  Clock.setDoW(datetime[5]);
+  delay(2000);
+  
+  
   pinMode(15, OUTPUT);
   digitalWrite(15, HIGH);
 }
@@ -62,9 +82,18 @@ void displayQbert(uint8_t times)
 void loop()
 {
   DateTime now = myRTC.now();
+  //new array for the time 
+  int day = now.day();
+  int month = now.month();
+ // int dow = now.dayOfTheWeek();
+  int datetime[3] = {01, 01, 01};
   // displayString("XYZ");
   displayTime(now.hour(), now.minute());
   delay(2000);
-  displayQbert(8);
-  // rainbow();
+  displayDate(datetime);
+  delay(2000);
+  //displayQbert(2);
+  
+  //rainbow();
+
 }
