@@ -24,27 +24,20 @@ void rainbow()
 
 void setup()
 {
-  int datetime[7];
+  int datetime[8];
   Serial.begin(9600);
   Wire.begin(33, 35);
   FastLED.addLeds<WS2812B, 3, GRB>(leds, 256);
   FastLED.setBrightness(150);
-  displayString("CNN");
+  displayString("CNN" , false, false);
   if (initWIFI()) {
-    displayString("OK");
+    displayString("OK", false, false);
   }
   delay(2000);
   initgetTime();
-  getDateTime(datetime);
-  Clock.setDate(datetime[3]);
-  Clock.setMonth(datetime[4]);
-  Clock.setYear(datetime[6]);
-  Clock.setHour(datetime[0]);
-  Clock.setMinute(datetime[1]);
-  Clock.setSecond(datetime[2]);
-  Clock.setDoW(datetime[5]);
-  delay(2000);
-  
+  Clock.setEpoch(getDateTime(datetime));
+  Clock.setDoW(datetime[7]);  
+  delay(2000); 
   
   pinMode(15, OUTPUT);
   digitalWrite(15, HIGH);
@@ -79,20 +72,49 @@ void displayQbert(uint8_t times)
   }
 }
 
+void displaydugDug(uint8_t times)
+{
+  FastLED.clear();
+
+  for (uint8_t j = 0; j < times; j++)
+  {
+
+    for (int i = 0; i < NUM_LEDS; i++)
+    {
+      leds[i] = pgm_read_dword(&(BombJack01[i])); // Read array from Flash
+    }
+
+    FastLED.show();
+    delay(500);
+
+    // Put Qbert second frame
+    FastLED.clear();
+    for (int i = 0; i < NUM_LEDS; i++)
+    {
+      leds[i] = pgm_read_dword(&(BombJack02[i]));
+    }
+
+    FastLED.show();
+    delay(500);
+  }
+}
+
 void loop()
 {
   DateTime now = myRTC.now();
   //new array for the time 
   int day = now.day();
   int month = now.month();
- // int dow = now.dayOfTheWeek();
-  int datetime[3] = {01, 01, 01};
+  //nt dow = now.dayOfTheWeek();
+  int dayOfWeek = ((day + 2*month + 3*(month + 1)/5 + now.year() + now.year()/4 - now.year()/100 + now.year()/400) % 7) + 1;
+  int datetime[3] = {day, month,dayOfWeek};
   // displayString("XYZ");
-  displayTime(now.hour(), now.minute());
-  delay(2000);
+  displayTime(now.hour(), now.minute(), true);
+  delay(10000);
   displayDate(datetime);
-  delay(2000);
-  //displayQbert(2);
+  delay(10000);
+  //displayQbert(4);
+  //displaydugDug(4);
   
   //rainbow();
 

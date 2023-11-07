@@ -2,8 +2,7 @@
 #include <FastLED.h>
 #define NUM_LEDS 256
 CRGB leds[NUM_LEDS];
-
-
+const int maxBrightness = 150;
 
 const byte digits[10][7] = {
     {B0001111, B1011001, B1011001, B1011001, B1011001, B1011001, B0001111}, // 0
@@ -47,8 +46,6 @@ const byte letters[26][7] = {
     {B1111111, B0000001, B0000010, B0000100, B0001000, B0010000, B1111111}, // Z
 };
 
-
-
 // Mappa la disposizione dei LED nella tua matrice
 const uint8_t ledMap[] = {
     15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0,
@@ -66,10 +63,9 @@ const uint8_t ledMap[] = {
     207, 206, 205, 204, 203, 202, 201, 200, 199, 198, 197, 196, 195, 194, 193, 192,
     208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223,
     239, 238, 237, 236, 235, 234, 233, 232, 231, 230, 229, 228, 227, 226, 225, 224,
-    240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255
-    };
+    240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255};
 
-void displayTime(int hours, int minutes)
+void displayTime(int hours, int minutes, bool fade)
 {
   int digitWidth = 4;  // Larghezza di ogni cifra
   int digitHeight = 7; // Altezza di ogni cifra
@@ -78,6 +74,18 @@ void displayTime(int hours, int minutes)
   int hourOnes = hours % 10;
   int minTens = minutes / 10;
   int minOnes = minutes % 10;
+
+  // FastLED.clear(); // Pulisci la matrice di LED
+  // facciamo un fade out per non avere un cambio di colore troppo brusco usando setBrightness
+  if (fade)
+  {
+    for (int i = FastLED.getBrightness(); i > 0; i--)
+    {
+      FastLED.setBrightness(i);
+      FastLED.show();
+      delay(5);
+    }
+  }
 
   FastLED.clear(); // Pulisci la matrice di LED
 
@@ -106,15 +114,38 @@ void displayTime(int hours, int minutes)
   }
 
   FastLED.show();
+  if (fade)
+  {
+    // facciamo un fade in per non avere un cambio di colore troppo brusco usando setBrightness
+    for (int i = 0; i <= maxBrightness; i++)
+    {
+      FastLED.setBrightness(i);
+      FastLED.show();
+      delay(5);
+    }
+  }
 };
 
-
-void displayString(String text, bool scndRow = false)
+void displayString(String text, bool scndRow = false, bool fade = true, bool display = true, struct CRGB color = CRGB::Red)
 {
+  if (fade)
+  {
+    for (int i = FastLED.getBrightness(); i > 0; i--)
+    {
+      FastLED.setBrightness(i);
+      FastLED.show();
+      delay(5);
+    }
+    
+  }
+  FastLED.clear();
+
+  
+
   int letterWidth = 5;  // Larghezza di ogni lettera
   int letterHeight = 7; // Altezza di ogni lettera
 
-  FastLED.clear(); // Pulisci la matrice di LED
+  
 
   int startX = 0; // Posizione iniziale sulla matrice di LED
 
@@ -138,49 +169,68 @@ void displayString(String text, bool scndRow = false)
         {
           if (letters[letterIndex][i] & (1 << (letterWidth - 1 - j)))
           {
-            leds[ledMap[ startX + i * letterWidth + j+ 144*scndRow + (11 * i)]] = CRGB::Red; // Usa il colore che desideri +144 per seconda riga
+            leds[ledMap[startX + i * letterWidth + j + 144 * scndRow + (11 * i)]] = color; // Usa il colore che desideri +144 per seconda riga
           }
         }
       }
       // Sposta la posizione per la prossima lettera
       startX += letterWidth + 0; // Aggiungi un pixel di spazio tra le lettere
-
     }
   }
 
-  FastLED.show();
+  if (display) FastLED.show();
+
+  if (fade)
+  {
+    // facciamo un fade in per non avere un cambio di colore troppo brusco usando setBrightness
+    for (int i = 0; i <= maxBrightness; i++)
+    {
+      FastLED.setBrightness(i);
+      FastLED.show();
+      delay(5);
+    }
+  }
 }
 
-void displayDate(int datetime[3]) { // 0-6 = h,m,s,day,month,year, dayofweek
-  
+void displayDate(int datetime[3])
+{ // 0-6 = h,m,s,day,month,year, dayofweek
+
   // the first row displays the day of the week 1 as Monday and 7 as Sunday
-  
+
   // the second row displays the day of the month and the month
 
-  //so for the first row we can use the function displayString
-  //for the second row we can use the function displayTime but we need to shift to the 2nd row
-  switch (datetime[2]) {
-    case 1:
-      displayString("MON");
-      break;
-    case 2:
-      displayString("TUE");
-      break;
-    case 3:
-      displayString("WED");
-      break;
-    case 4:
-      displayString("THU");
-      break;
-    case 5:
-      displayString("FRI");
-      break;
-    case 6:
-      displayString("SAT");
-      break;
-    case 7:
-      displayString("SUN");
-      break;
+  // so for the first row we can use the function displayString
+  // for the second row we can use the function displayTime but we need to shift to the 2nd row
+  for (int i = FastLED.getBrightness(); i > 0; i--)
+    {
+      FastLED.setBrightness(i);
+      FastLED.show();
+      delay(5);
+    }
+    
+  switch (datetime[2])
+  {
+  case 1:
+    displayString("MON", false, false, false, CRGB::Purple);
+    break;
+  case 2:
+    displayString("TUE",  false, false, false, CRGB::Salmon);
+    break;
+  case 3:
+    displayString("WED",  false, false, false, CRGB::Green);
+    break;
+  case 4:
+    displayString("THU",  false, false, false, CRGB::Blue);
+    break;
+  case 5:
+    displayString("FRI",  false, false, false, CRGB::Red);
+    break;
+  case 6:
+    displayString("SAT",  false, false, false , CRGB::Yellow);
+    break;
+  case 7:
+    displayString("SUN",  false, false, false, CRGB::Orange);
+    break;
   }
   int digitWidth = 4;  // Larghezza di ogni cifra
   int digitHeight = 7; // Altezza di ogni cifra
@@ -190,7 +240,7 @@ void displayDate(int datetime[3]) { // 0-6 = h,m,s,day,month,year, dayofweek
   int monthTens = datetime[1] / 10;
   int monthOnes = datetime[1] % 10;
 
-
+  FastLED.setBrightness(0);
   // Disegna le cifre
   for (int i = 0; i < digitHeight; i++)
   {
@@ -198,7 +248,7 @@ void displayDate(int datetime[3]) { // 0-6 = h,m,s,day,month,year, dayofweek
     {
       if (digits[dayTens][i] & (1 << (digitWidth - 1 - j)))
       {
-        leds[ledMap[i * digitWidth + j +144 + (12 * i)]] = CRGB::Purple; // 12 per w= 4 11 per w=5
+        leds[ledMap[i * digitWidth + j + 144 + (12 * i)]] = CRGB::Purple; // 12 per w= 4 11 per w=5
       }
       if (digits[dayOnes][i] & (1 << (digitWidth - 1 - j)))
       {
@@ -216,6 +266,11 @@ void displayDate(int datetime[3]) { // 0-6 = h,m,s,day,month,year, dayofweek
   }
 
   FastLED.show();
-
-
+  //fade 
+  for (int i = FastLED.getBrightness(); i <= maxBrightness; i++)
+  {
+    FastLED.setBrightness(i);
+    FastLED.show();
+    delay(5);
+  }
 }

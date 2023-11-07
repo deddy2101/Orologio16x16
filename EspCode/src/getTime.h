@@ -26,7 +26,7 @@ void initgetTime() {
   timeClient.setTimeOffset(3600);
   Serial.println("TIME CLIENT INITIALIZED");
 }
-void getDateTime(int resultArray[6]) {
+int getDateTime(int resultArray[6]) {
   while(!timeClient.update()) {
     timeClient.forceUpdate();
   }
@@ -62,13 +62,24 @@ void getDateTime(int resultArray[6]) {
     Serial.print(monthStamp);
     Serial.print("/");
     Serial.println(yearStamp);
+     // Converte le stringhe in interi
+  int year = yearStamp.toInt();
+  int month = monthStamp.toInt();
+  int dayInt = dayStamp.toInt();
+      int dayOfWeek = ((dayInt + 2*month + 3*(month + 1)/5 + year + year/4 - year/100 + year/400) % 7) + 1;
+
     resultArray[0] = hours;
     resultArray[1] = minutes;
     resultArray[2] = seconds;
     resultArray[3] = day;
-    resultArray[4] = monthStamp.toInt();
-    resultArray[5] = monthStamp.toInt();
-    resultArray[6] = yearStamp.toInt();
+    resultArray[4] = year;
+    resultArray[5] = month;
+    resultArray[6] = dayInt;
+    resultArray[7] = dayOfWeek;
+
+    //calculate epoch time
+    int epoch = timeClient.getEpochTime();
+    return epoch;
 
 
 }
