@@ -4,6 +4,7 @@
 #include "displayDefinitions.h"
 #include "wifisettings.h"
 #include "getTime.h"
+#include "OTA.h"
 
 // RTC OBJECT CREATION
 RTClib myRTC;
@@ -33,6 +34,7 @@ void setup()
   if (initWIFI()) {
     displayString("OK", false, false);
   }
+  OTAInit();
   delay(2000);
   initgetTime();
   Clock.setEpoch(getDateTime(datetime));
@@ -110,7 +112,7 @@ void loop()
   int datetime[3] = {day, month,dayOfWeek};
   // displayString("XYZ");
   displayTime(now.hour(), now.minute(), true);
-  delay(10000);
+  delay(20000);
   displayDate(datetime);
   delay(10000);
   //displayQbert(4);
