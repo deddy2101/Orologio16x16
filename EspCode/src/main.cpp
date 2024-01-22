@@ -23,27 +23,7 @@ void rainbow()
   }
 }
 
-void setup()
-{
-  int datetime[8];
-  Serial.begin(9600);
-  Wire.begin(33, 35);
-  FastLED.addLeds<WS2812B, 3, GRB>(leds, 256);
-  FastLED.setBrightness(150);
-  displayString("CNN" , false, false);
-  if (initWIFI()) {
-    displayString("OK", false, false);
-  }
-  OTAInit();
-  delay(2000);
-  initgetTime();
-  Clock.setEpoch(getDateTime(datetime));
-  Clock.setDoW(datetime[7]);  
-  delay(2000); 
-  
-  pinMode(15, OUTPUT);
-  digitalWrite(15, HIGH);
-}
+
 int hours = 00;
 int minutes = 00;
 
@@ -101,6 +81,34 @@ void displaydugDug(uint8_t times)
   }
 }
 
+
+void setup()
+{
+  int datetime[8];
+  Serial.begin(9600);
+  Wire.begin(33, 35);
+  FastLED.addLeds<WS2812B, 3, GRB>(leds, 256);
+  FastLED.setBrightness(150);
+  displayString("CNN" , false, false);
+  if (initWIFI()) {
+    displayString("OK", false, false);
+  }
+  delay(1000);  
+  OTAInit();
+  initgetTime();
+  Clock.setEpoch(getDateTime(datetime));
+  Clock.setDoW(datetime[7]);  
+  displayString("FIN", false, false);
+  delay(1000); 
+  
+  pinMode(15, OUTPUT);
+  digitalWrite(15, HIGH);
+  displayQbert(4);
+  
+
+}
+
+
 void loop()
 {
   DateTime now = myRTC.now();
@@ -108,14 +116,20 @@ void loop()
   int day = now.day();
   int month = now.month();
   //nt dow = now.dayOfTheWeek();
-  int dayOfWeek = ((day + 2*month + 3*(month + 1)/5 + now.year() + now.year()/4 - now.year()/100 + now.year()/400) % 7) + 1;
-  int datetime[3] = {day, month,dayOfWeek};
+int dayOfWeek = (now.day() + 2 * now.month() + 3 * (now.month() + 1) / 5 + now.year() + now.year() / 4 - now.year() / 100 + now.year() / 400) % 7;
+if (dayOfWeek < 0) {
+  dayOfWeek += 7; // Aggiungi 7 se il risultato è negativo
+}
+dayOfWeek += 8; // Aggiungi 5 per far iniziare da lunedì (modificato da 1 a 5)
+dayOfWeek %= 7; // Assicurati che il risultato sia compreso tra 0 e 6
+dayOfWeek += 1; // Aggiungi 1 per far iniziare da lunedì
+ int datetime[3] = {day, month,dayOfWeek};
   // displayString("XYZ");
   displayTime(now.hour(), now.minute(), true);
   delay(20000);
   displayDate(datetime);
   delay(10000);
-  //displayQbert(4);
+  
   //displaydugDug(4);
   
   //rainbow();

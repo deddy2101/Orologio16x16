@@ -96,19 +96,19 @@ void displayTime(int hours, int minutes, bool fade)
     {
       if (digits[hourTens][i] & (1 << (digitWidth - 1 - j)))
       {
-        leds[ledMap[i * digitWidth + j + (12 * i)]] = CRGB::Blue; // 12 per w= 4 11 per w=5
+        leds[ledMap[i * digitWidth + j + (12 * i)]] = CRGB::Orange; // 12 per w= 4 11 per w=5
       }
       if (digits[hourOnes][i] & (1 << (digitWidth - 1 - j)))
       {
-        leds[ledMap[i * digitWidth + j + 5 + (12 * i)]] = CRGB::Blue;
+        leds[ledMap[i * digitWidth + j + 5 + (12 * i)]] = CRGB::Orange;
       }
       if (digits[minTens][i] & (1 << (digitWidth - 1 - j)))
       {
-        leds[ledMap[i * digitWidth + j + 151 + (12 * i)]] = CRGB::Blue;
+        leds[ledMap[i * digitWidth + j + 151 + (12 * i)]] = CRGB::Yellow;
       }
       if (digits[minOnes][i] & (1 << (digitWidth - 1 - j)))
       {
-        leds[ledMap[i * digitWidth + j + 156 + (12 * i)]] = CRGB::Blue;
+        leds[ledMap[i * digitWidth + j + 156 + (12 * i)]] = CRGB::Yellow;
       }
     }
   }
