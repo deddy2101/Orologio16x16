@@ -1,7 +1,20 @@
 {
 	"folders": [
 		{
+			"name": "Base",
+			"path": "../posteggiMaddo/ESPCode/Base"
+		},
+		{
+			"name": "PULSANTE_MADDO",
+			"path": "../MaddoLight/PULSANTE_MADDO"
+		},
+		{
+			"name": "EspCode",
 			"path": "EspCode"
+		},
+		{
+			"name": "ESPCode",
+			"path": "../MaddoLight/ESPCode"
 		}
 	],
 	"settings": {

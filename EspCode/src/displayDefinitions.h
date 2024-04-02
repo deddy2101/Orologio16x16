@@ -86,29 +86,33 @@ void displayTime(int hours, int minutes, bool fade)
       delay(5);
     }
   }
+  CRGBPalette16 currentPalette = RainbowColors_p;
 
   FastLED.clear(); // Pulisci la matrice di LED
-
+  
   // Disegna le cifre
   for (int i = 0; i < digitHeight; i++)
   {
     for (int j = 0; j < digitWidth; j++)
     {
+        CRGB RandomColor = CRGB(random(256), random(256), random(256));
+
       if (digits[hourTens][i] & (1 << (digitWidth - 1 - j)))
       {
-        leds[ledMap[i * digitWidth + j + (12 * i)]] = CRGB::Orange; // 12 per w= 4 11 per w=5
+        
+        leds[ledMap[i * digitWidth + j + (12 * i)]] = RandomColor; // 12 per w= 4 11 per w=5
       }
       if (digits[hourOnes][i] & (1 << (digitWidth - 1 - j)))
       {
-        leds[ledMap[i * digitWidth + j + 5 + (12 * i)]] = CRGB::Orange;
+        leds[ledMap[i * digitWidth + j + 5 + (12 * i)]] =RandomColor;
       }
       if (digits[minTens][i] & (1 << (digitWidth - 1 - j)))
       {
-        leds[ledMap[i * digitWidth + j + 151 + (12 * i)]] = CRGB::Yellow;
+        leds[ledMap[i * digitWidth + j + 151 + (12 * i)]] = RandomColor;
       }
       if (digits[minOnes][i] & (1 << (digitWidth - 1 - j)))
       {
-        leds[ledMap[i * digitWidth + j + 156 + (12 * i)]] = CRGB::Yellow;
+        leds[ledMap[i * digitWidth + j + 156 + (12 * i)]] = RandomColor;
       }
     }
   }
@@ -210,25 +214,25 @@ void displayDate(int datetime[3])
     
   switch (datetime[2])
   {
-  case 1:
+  case 0:
     displayString("MON", false, false, false, CRGB::Purple);
     break;
-  case 2:
+  case 1:
     displayString("TUE",  false, false, false, CRGB::Salmon);
     break;
-  case 3:
+  case 2:
     displayString("WED",  false, false, false, CRGB::Green);
     break;
-  case 4:
+  case 3 :
     displayString("THU",  false, false, false, CRGB::Blue);
     break;
-  case 5:
+  case 4:
     displayString("FRI",  false, false, false, CRGB::Red);
     break;
-  case 6:
+  case 5:
     displayString("SAT",  false, false, false , CRGB::Yellow);
     break;
-  case 7:
+  case 6:
     displayString("SUN",  false, false, false, CRGB::Orange);
     break;
   }

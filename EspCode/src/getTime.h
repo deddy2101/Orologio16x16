@@ -1,12 +1,14 @@
-
-
-
 #include <NTPClient.h>
 #include <WiFiUdp.h>
-
+#include <Timezone.h> // Includi la libreria Timezone.h
 
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP);
+
+// Definisci il fuso orario e i parametri relativi all'ora legale e all'ora solare per Roma
+TimeChangeRule CEST = {"CEST", Last, Sun, Mar, 2, 120};  // Central European Summer Time
+TimeChangeRule CET = {"CET ", Last, Sun, Oct, 3, 60};     // Central European Time
+Timezone myTZ(CEST, CET);
 
 // Variables to save date and time
 String formattedDate;
@@ -14,72 +16,73 @@ String dayStamp;
 String timeStamp;
 
 void initgetTime() {
-
-
-// Initialize a NTPClient to get time
+  // Initialize a NTPClient to get time
   timeClient.begin();
   // Set offset time in seconds to adjust for your timezone, for example:
   // GMT +1 = 3600
   // GMT +8 = 28800
   // GMT -1 = -3600
   // GMT 0 = 0
-  timeClient.setTimeOffset(3600);
+  timeClient.setTimeOffset(0);
   Serial.println("TIME CLIENT INITIALIZED");
 }
+
 int getDateTime(int resultArray[6]) {
-  while(!timeClient.update()) {
+  while (!timeClient.update()) {
     timeClient.forceUpdate();
   }
-  int hours = timeClient.getHours();
-    int minutes = timeClient.getMinutes();
-    int seconds = timeClient.getSeconds();
-    int day = timeClient.getDay();
-    //print time to serial monitor
-    Serial.print("TIME: ");
-    Serial.print(hours);
-    Serial.print(":");
-    Serial.print(minutes);
-    Serial.print(":");
-    Serial.println(seconds);
-    Serial.print("DAY: ");
-    Serial.println(day);
-    String DateAndTime = timeClient.getFormattedDate();
+  // Get UTC time from NTP server
+  time_t utcTime = timeClient.getEpochTime();
+  
+  // Convert UTC time to local time including daylight saving time (DST) and standard time
+  TimeChangeRule *tcr;
+  time_t localTime = myTZ.toLocal(utcTime, &tcr);
+  
+  // Extract components of local time
+  tmElements_t tm;
+  breakTime(localTime, tm);
+  
+  int hours = tm.Hour;
+  int minutes = tm.Minute;
+  int seconds = tm.Second;
+  int day = tm.Wday;
+  int year = tm.Year + 1970;
+  int month = tm.Month;
+  int dayInt = tm.Day;
+  
+  // Print local time
+  Serial.print("LOCAL TIME: ");
+  Serial.print(hours);
+  Serial.print(":");
+  Serial.print(minutes);
+  Serial.print(":");
+  Serial.println(seconds);
+  Serial.print("DAY: ");
+  Serial.println(day);
+  
+  // Print local date
+  Serial.print("DATE: ");
+  Serial.print(dayInt);
+  Serial.print("/");
+  Serial.print(month);
+  Serial.print("/");
+  Serial.println(year);
+  
+  // Determine the day of the week using the weekday() function
+  int dayOfWeek = weekday(localTime);
+  
+  // Print day of the week
+  Serial.print("DAY OF THE WEEK: ");
+  Serial.println(dayOfWeek);
+  
+  resultArray[0] = hours;
+  resultArray[1] = minutes;
+  resultArray[2] = seconds;
+  resultArray[3] = day;
+  resultArray[4] = year;
+  resultArray[5] = month;
+  resultArray[6] = dayInt;
+  resultArray[7] = dayOfWeek;
 
-    //we need to split the string into date and time
-    int splitT = DateAndTime.indexOf("T");
-    String dateStamp = DateAndTime.substring(0, splitT);
-    //now we have the date we split the date into individual parts
-    int splitD = dateStamp.indexOf("-");
-    String yearStamp = dateStamp.substring(0, splitD);
-    String monthStamp = dateStamp.substring(splitD+1, dateStamp.length());
-    int splitM = monthStamp.indexOf("-");
-    String dayStamp = monthStamp.substring(splitM+1, monthStamp.length());
-    monthStamp = monthStamp.substring(0, splitM);
-    //now we have the date split into its parts we can print them out
-    Serial.print("DATE: ");
-    Serial.print(dayStamp);
-    Serial.print("/");
-    Serial.print(monthStamp);
-    Serial.print("/");
-    Serial.println(yearStamp);
-     // Converte le stringhe in interi
-  int year = yearStamp.toInt();
-  int month = monthStamp.toInt();
-  int dayInt = dayStamp.toInt();
-      int dayOfWeek = ((dayInt + 2*month + 3*(month + 1)/5 + year + year/4 - year/100 + year/400) % 7) + 1;
-
-    resultArray[0] = hours;
-    resultArray[1] = minutes;
-    resultArray[2] = seconds;
-    resultArray[3] = day;
-    resultArray[4] = year;
-    resultArray[5] = month;
-    resultArray[6] = dayInt;
-    resultArray[7] = dayOfWeek;
-
-    //calculate epoch time
-    int epoch = timeClient.getEpochTime();
-    return epoch;
-
-
+  return localTime;
 }

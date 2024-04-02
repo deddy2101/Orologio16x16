@@ -115,23 +115,27 @@ void loop()
   //new array for the time 
   int day = now.day();
   int month = now.month();
-  //nt dow = now.dayOfTheWeek();
-int dayOfWeek = (now.day() + 2 * now.month() + 3 * (now.month() + 1) / 5 + now.year() + now.year() / 4 - now.year() / 100 + now.year() / 400) % 7;
-if (dayOfWeek < 0) {
-  dayOfWeek += 7; // Aggiungi 7 se il risultato è negativo
-}
-dayOfWeek += 8; // Aggiungi 5 per far iniziare da lunedì (modificato da 1 a 5)
-dayOfWeek %= 7; // Assicurati che il risultato sia compreso tra 0 e 6
-dayOfWeek += 1; // Aggiungi 1 per far iniziare da lunedì
- int datetime[3] = {day, month,dayOfWeek};
+  int dayOfWeek = now.dayOfTheWeek();
+  int datetime[3] = {day, month,dayOfWeek};
   // displayString("XYZ");
   displayTime(now.hour(), now.minute(), true);
   delay(20000);
   displayDate(datetime);
   delay(10000);
   
-  //displaydugDug(4);
+  switch (random(1, 3))
+  {
+    case 1:
+      displayQbert(4);
+      break;
+    case 2:
+      displaydugDug(4);
+      break;
+    case 3:
+      rainbow();
+      break;
+    default:
+      break;
+  }
   
-  //rainbow();
-
 }

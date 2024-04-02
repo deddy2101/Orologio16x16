@@ -807,3 +807,25 @@ void DS3231::writeControlByte(byte control, bool which) {
 	_Wire.write(control);
 	_Wire.endTransmission();
 }
+
+uint8_t DateTime::dayOfTheWeek() const {
+    uint16_t y = year();
+    uint8_t m = month();
+    uint8_t d = day();
+
+    if (m < 3) {
+        m += 12;
+        y--;
+    }
+
+    uint16_t k = y % 100;
+    uint16_t j = y / 100;
+
+    uint16_t dayOfWeek = (d + ((13 * (m + 1)) / 5) + k + (k / 4) + (j / 4) + (5 * j)) % 7;
+    
+    // Convert Sunday from 0 to 7
+    if (dayOfWeek == 0)
+        dayOfWeek = 7;
+    
+    return dayOfWeek;
+}
