@@ -214,26 +214,33 @@ void displayDate(int datetime[3])
     
   switch (datetime[2])
   {
-  case 0:
+  case 2:
     displayString("MON", false, false, false, CRGB::Purple);
     break;
-  case 1:
+  case 3:
     displayString("TUE",  false, false, false, CRGB::Salmon);
     break;
-  case 2:
+  case 4:
     displayString("WED",  false, false, false, CRGB::Green);
     break;
-  case 3 :
+  case 5 :
     displayString("THU",  false, false, false, CRGB::Blue);
     break;
-  case 4:
+  case 6:
     displayString("FRI",  false, false, false, CRGB::Red);
     break;
-  case 5:
+  case 7:
     displayString("SAT",  false, false, false , CRGB::Yellow);
     break;
-  case 6:
+  case 1:
     displayString("SUN",  false, false, false, CRGB::Orange);
+    break;
+  default:
+  //convert datetime[2] to string
+    String dayOfWeek = String(2);
+    displayString(dayOfWeek,  false, false, false, CRGB::Red);
+    Serial.println("Error: day of the week not valid");
+    Serial.println(datetime[2]);
     break;
   }
   int digitWidth = 4;  // Larghezza di ogni cifra

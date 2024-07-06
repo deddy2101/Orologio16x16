@@ -9,7 +9,6 @@
 // RTC OBJECT CREATION
 RTClib myRTC;
 DS3231 Clock;
-
 void rainbow()
 {
   for (int j = 0; j < 255; j++)
@@ -111,12 +110,28 @@ void setup()
 
 void loop()
 {
-  DateTime now = myRTC.now();
+  DateTime now = myRTC.now();;
   //new array for the time 
   int day = now.day();
   int month = now.month();
   int dayOfWeek = now.dayOfTheWeek();
   int datetime[3] = {day, month,dayOfWeek};
+  //Print the time
+  Serial.print(now.hour(), DEC);
+  Serial.print(':');
+  Serial.print(now.minute(), DEC);
+  Serial.print(':');
+  Serial.print(now.second(), DEC);
+  Serial.print(" ");
+  Serial.print(now.day(), DEC);
+  Serial.print('/');
+  Serial.print(now.month(), DEC);
+  Serial.print('/');
+  Serial.print(now.year(), DEC);
+  Serial.print(" ");
+  Serial.print(now.dayOfTheWeek(), DEC);
+  Serial.println();
+
   // displayString("XYZ");
   displayTime(now.hour(), now.minute(), true);
   delay(20000);
