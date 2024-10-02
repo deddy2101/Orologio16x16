@@ -5,7 +5,7 @@ const char *password = "S74s8jbvie74h"; //deddyebello2022
 //const char *ssid = "Wind3 HUB - E75186";
 //const char *password = "6tcpkdz76b9bhtkd";
 
-IPAddress local_IP(192, 168, 1, 150); //214 relay //215 button //216 button
+IPAddress local_IP(192, 168, 1, 151); //214 relay //215 button //216 button
 IPAddress gateway(192, 168, 1, 254);
 //IPAddress gateway(192, 168, 1, 254);
 IPAddress subnet(255, 255, 255, 0);

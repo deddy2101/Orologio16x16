@@ -1,0 +1,29 @@
+/* color palette from <https://github.com/vuejs/theme> */
+:root {
+
+}
+
+/* semantic color variables for this project */
+:root {
+
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+
+  }
+}
+
+*,
+*::before,
+*::after {
+
+}
+
+body {
+
+}
+
+* {
+  font-family: 'Rotunda Extra', sans-serif; /* Usa il tipo di font 'Rotunda' per tutti i tipi di componenti */
+}

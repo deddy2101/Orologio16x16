@@ -95,7 +95,9 @@ void setup()
   delay(1000);  
   OTAInit();
   initgetTime();
+  // Get the date and time from the NTP server and set the RTC
   Clock.setEpoch(getDateTime(datetime));
+  // Set the time on the RTC
   Clock.setDoW(datetime[7]);  
   displayString("FIN", false, false);
   delay(1000); 
@@ -103,8 +105,6 @@ void setup()
   pinMode(15, OUTPUT);
   digitalWrite(15, HIGH);
   displayQbert(4);
-  
-
 }
 
 

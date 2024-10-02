@@ -27,10 +27,14 @@ void initgetTime() {
   Serial.println("TIME CLIENT INITIALIZED");
 }
 
+// Function to get date and time from NTP server
 int getDateTime(int resultArray[6]) {
+  Serial.println("GETTING DATE AND TIME");
   while (!timeClient.update()) {
+
     timeClient.forceUpdate();
   }
+  Serial.println("TIME CLIENT UPDATED");
   // Get UTC time from NTP server
   time_t utcTime = timeClient.getEpochTime();
   
