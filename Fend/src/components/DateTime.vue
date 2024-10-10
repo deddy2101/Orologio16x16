@@ -2,7 +2,7 @@
 import {onMounted, ref} from 'vue';
 import { getCurrentDateTime } from "@/composables/composable";
 import useApi from "@/composables/useAPI";
-const {getTimeSetting, setInternetTime} = useApi();
+const {getTimeSetting, setInternetTime, setDateTime} = useApi();
 
 onMounted(async () => {
   try{
@@ -33,14 +33,31 @@ const handleSetDatetime = async () => {
     } catch (err) {
       alert(err);
     }
+  } else {
+    try {
+      const hour = dateTime.value.split("T")[1].split(":")[0];
+      const minute = dateTime.value.split("T")[1].split(":")[1];
+      const second = dateTime.value.split("T")[1].split(":")[2];
+      const day = dateTime.value.split("T")[0].split("-")[2];
+      const month = dateTime.value.split("T")[0].split("-")[1];
+      const year = dateTime.value.split("T")[0].split("-")[0];
+      const response = await setDateTime(hour, minute, second, day, month, year);
+      if (response.status === 200) {
+        alert(response.message);
+      } else {
+        alert(response.message);
+      }
+    } catch (err) {
+      alert(err);
+    }
   }
 }
 </script>
 
 <template>
-  <label class="form-control w-full max-w-xs mb-4">
+  <label class="form-control w-full max-w-xs mb-4 flex content-center justify-center">
     <div class="label">
-      <span class="label-text">NTP/MANUALE</span>
+      <span class="label-text">AUTO/MANUALE</span>
     </div>
     <input  type="checkbox" class="toggle" v-model="isManualTime" />
   </label>
