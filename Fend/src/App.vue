@@ -4,7 +4,7 @@ import Body from "@/components/Body.vue";
 </script>
 
 <template>
-  <div class="h-full w-full flex flex-col">
+  <div class="flex flex-col" style="height: 100vh; width: 100vw">
     <Header/>
     <Body/>
   </div>

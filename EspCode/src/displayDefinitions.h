@@ -2,7 +2,7 @@
 #include <FastLED.h>
 #define NUM_LEDS 256
 CRGB leds[NUM_LEDS];
-const int maxBrightness = 150;
+int maxBrightness = 150;
 
 const byte digits[10][7] = {
     {B0001111, B1011001, B1011001, B1011001, B1011001, B1011001, B0001111}, // 0

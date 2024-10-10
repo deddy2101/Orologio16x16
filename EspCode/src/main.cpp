@@ -88,34 +88,56 @@ void setup()
   Wire.begin(33, 35);
   FastLED.addLeds<WS2812B, 3, GRB>(leds, 256);
   FastLED.setBrightness(150);
+  maxBrightness = 150;
   displayString("CNN" , false, false);
   if (initWIFI()) {
     displayString("OK", false, false);
-  }
-  delay(1000);  
-  OTAInit();
-  initgetTime();
+    initgetTime();
   // Get the date and time from the NTP server and set the RTC
   Clock.setEpoch(getDateTime(datetime));
   // Set the time on the RTC
-  Clock.setDoW(datetime[7]);  
+    Clock.setDoW(datetime[7]);
+  }
+  delay(1000);  
+  OTAInit();
+  DateTime now = DateTime(2024, 10, 9, 23, 26, 0); // Set the date and time
+  Clock.setEpoch(now.unixtime()); // Set the RTC time
+  Clock.setDoW(3); // giorno della settimana
+    
   displayString("FIN", false, false);
   delay(1000); 
   
   pinMode(15, OUTPUT);
   digitalWrite(15, HIGH);
   displayQbert(4);
-}
+} 
+
+
 
 
 void loop()
 {
-  DateTime now = myRTC.now();;
+  DateTime now = myRTC.now();
   //new array for the time 
   int day = now.day();
   int month = now.month();
   int dayOfWeek = now.dayOfTheWeek();
   int datetime[3] = {day, month,dayOfWeek};
+  //if the time is between 22 and 8 set the brightness to 10
+  if (now.hour() >= 22 || now.hour() <= 8)
+  {
+    FastLED.setBrightness(10);
+    maxBrightness = 10;
+    FastLED.show();
+  }
+  else
+  {
+    FastLED.setBrightness(150);
+    maxBrightness = 150;
+    FastLED.show();
+  }
+  
+  
   //Print the time
   Serial.print(now.hour(), DEC);
   Serial.print(':');
@@ -138,19 +160,7 @@ void loop()
   displayDate(datetime);
   delay(10000);
   
-  switch (random(1, 3))
-  {
-    case 1:
-      displayQbert(4);
-      break;
-    case 2:
-      displaydugDug(4);
-      break;
-    case 3:
-      rainbow();
-      break;
-    default:
-      break;
-  }
+  
+  
   
 }

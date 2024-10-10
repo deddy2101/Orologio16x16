@@ -1,32 +1,23 @@
 <script setup>
 
+import Container from "@/components/container.vue";
+import DateTime from "@/components/DateTime.vue";
+import WIFI from "@/components/WIFI.vue";
 </script>
 
 <template>
-  <div class="bg-gray-100 w-full h-full flex flex-col">
-    <h1 class="text-2xl font-bold text-center">Impostazioni</h1>
-    <div class="bg-gray-200  p-3 flex flex-row self-center w-3/4 content-center	">
-      <label class="form-control w-full max-w-xs">
-        <div class="label">
-          <span class="label-text">DATA E ORA DA IMPOSTARE</span>
-        </div>
-        <input type="datetime-local" placeholder="Type here" class="input input-bordered w-full max-w-xs" />
+  <div class="bg-gray-100 w-full h-full flex flex-col items-center justify-center space-y-6">
 
-      </label>
-      <button class="btn btn-primary">salva</button>
-    </div>
-    <label class="form-control w-full max-w-xs">
-      <div class="label">
-        <span class="label-text">AP ?</span>
-      </div>
-      <input type="checkbox" class="toggle" checked="checked" />
-    </label>
-    <input type="text" placeholder="SSID" class="input input-bordered w-full max-w-xs" />
-    <input type="text" placeholder="PASSWD" class="input input-bordered w-full max-w-xs" />
+    <container title="Data e Ora">
+      <date-time></date-time>
+    </container>
 
-
+    <container title="WiFi">
+      <WIFI></WIFI>
+    </container>
   </div>
 </template>
+
 
 <style scoped>
 
