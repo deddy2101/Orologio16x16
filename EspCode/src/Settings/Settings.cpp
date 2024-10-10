@@ -23,7 +23,7 @@ void Settings::saveSettings() {
   EEPROM.commit();
   // reboot the device to apply the new settings
   delay(1000);
-  ESP.restart();
+  //ESP.restart();
 }
 
 void Settings::SetDateTimeToRTC(DateTime dateTime)

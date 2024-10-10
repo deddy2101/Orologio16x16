@@ -6,6 +6,22 @@ RTCManager::RTCManager() {
     Wire.begin(33, 35);  // Inizializzazione I2C con i pin specifici per ESP32
 }
 
+void RTCManager::init()
+{
+    //check if there is a RTC connected making a request to the RTC like the temperature
+    if (rtc.getTemperature() == 0)
+    {
+        Serial.println("RTC not found!");
+        while (1)
+            ;
+    }
+    else
+    {
+        Serial.println("RTC found!");
+    }
+
+}
+
 // Set the time from NTP server
 void RTCManager::setTimeFromNTP(int datetime[8]) {
     rtc.setEpoch(datetime[0]); // Imposta l'ora dall'epoch NTP

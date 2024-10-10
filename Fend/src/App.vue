@@ -6,7 +6,7 @@ import Body from "@/components/Body.vue";
 <template>
   <div class="flex flex-col" style="height: 100vh; width: 100vw">
     <Header/>
-    <Body/>
+    <Body class="overflow-scroll pt-3"/>
   </div>
 
 </template>

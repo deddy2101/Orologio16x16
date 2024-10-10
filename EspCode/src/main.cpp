@@ -15,6 +15,7 @@ WebServerManager webServer(&settings);  // Crea l'oggetto WebServerManager
 void setup() {
   Serial.begin(9600);
   settings.loadSettings();
+  rtc.init();
   display.initDisplay();
   wifi.initWIFI(settings.getUseSTA());
   timeManager.init(settings.getUseInternetTime());
@@ -28,14 +29,32 @@ void setup() {
   webServer.initServer();
 }
 
+unsigned long previousMillis = 0;    // Memorizza l'ultimo tempo in cui hai cambiato la visualizzazione
+const long intervalTime = 20000;     // Intervallo per la visualizzazione dell'ora (20 secondi)
+const long intervalDate = 10000;     // Intervallo per la visualizzazione della data (10 secondi)
+bool showTime = true; 
+
 void loop() {
-  DateTime now = rtc.getCurrentTime();
-  int day = now.day();
-  int month = now.month();
-  int dayOfWeek = now.dayOfTheWeek();
-  int datetime[3] = {day, month,dayOfWeek};
-  display.displayTime(now.hour(), now.minute(), true);
+  unsigned long currentMillis = millis();  // Ottieni il tempo corrente
   
-  display.displayDate(datetime);
-  delay(1000);
+  // Controlla se è tempo di cambiare visualizzazione
+  if (showTime && currentMillis - previousMillis >= intervalTime) {
+    previousMillis = currentMillis;  // Aggiorna il tempo dell'ultimo cambiamento
+    // Cambia a visualizzazione data
+    DateTime now = rtc.getCurrentTime();
+    int day = now.day();
+    int month = now.month();
+    int dayOfWeek = now.dayOfTheWeek();
+    int datetime[3] = {day, month, dayOfWeek};
+    display.displayDate(datetime);  // Mostra la data
+    showTime = false;  // Cambia alla visualizzazione della data
+  }
+  else if (!showTime && currentMillis - previousMillis >= intervalDate) {
+    previousMillis = currentMillis;  // Aggiorna il tempo dell'ultimo cambiamento
+    // Cambia a visualizzazione ora
+    DateTime now = rtc.getCurrentTime();
+    display.displayTime(now.hour(), now.minute(), true);  // Mostra l'ora
+    showTime = true;  // Cambia alla visualizzazione dell'ora
+  }
+
 }

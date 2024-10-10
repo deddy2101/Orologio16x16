@@ -12,11 +12,6 @@ public:
 private:
     const char* ssid;
     const char* password;
-    IPAddress local_IP;
-    IPAddress gateway;
-    IPAddress subnet;
-    IPAddress primaryDNS;
-    IPAddress secondaryDNS;
 };
 
 #endif // WIFIMANAGER_H

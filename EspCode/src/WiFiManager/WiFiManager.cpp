@@ -1,9 +1,7 @@
 #include "WiFiManager.h"
 
 WiFiManager::WiFiManager(const char* ssid, const char* password)
-    : ssid(ssid), password(password), 
-      local_IP(10, 0, 0, 222), gateway(10, 0, 0, 1),
-      subnet(255, 255, 255, 0), primaryDNS(1, 1, 1, 1), secondaryDNS(1, 0, 0, 1) {}
+    : ssid(ssid), password(password) {}
 
 bool WiFiManager::initWIFI(bool useSTA) {
     if (useSTA) {
@@ -42,6 +40,17 @@ bool WiFiManager::initWIFI(bool useSTA) {
         WiFi.mode(WIFI_AP);  // Imposta la modalità AP
         const char* apSSID = "MyAccessPoint";
         const char* apPassword = "";
+
+        // Imposta l'indirizzo IP dell'AP (192.168.1.1)
+        IPAddress local_IP(192, 168, 1, 1);
+        IPAddress gateway(192, 168, 1, 1);
+        IPAddress subnet(255, 255, 255 ,0);
+        
+        // Configura l'AP con l'IP statico
+        if (!WiFi.softAPConfig(local_IP, gateway, subnet)) {
+            Serial.println("Failed to configure Access Point IP.");
+            return false;
+        }
 
         Serial.println("Starting Access Point...");
         if (WiFi.softAP(apSSID, apPassword)) {

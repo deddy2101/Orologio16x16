@@ -12,6 +12,7 @@ class RTCManager {
   public:
     // Constructor
     RTCManager();
+    void init();
 
     // Set the time using NTP or manually
     void setTimeFromNTP(int datetime[8]);    // Set time from NTP server
