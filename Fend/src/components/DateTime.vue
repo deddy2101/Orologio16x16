@@ -6,7 +6,9 @@ const {getTimeSetting, setInternetTime, setDateTime} = useApi();
 
 onMounted(async () => {
   try{
-    isManualTime.value = await getTimeSetting();
+   const response = await getTimeSetting();
+   //the response.message is a string true or false converted to boolean
+    isManualTime.value = response.message === "false";
   } catch (err) {
     isManualTime.value = false;
     alert(err);

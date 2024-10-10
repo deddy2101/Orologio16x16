@@ -38,8 +38,8 @@ bool WiFiManager::initWIFI(bool useSTA) {
     } else {
         // Modalità Access Point (AP)
         WiFi.mode(WIFI_AP);  // Imposta la modalità AP
-        const char* apSSID = "MyAccessPoint";
-        const char* apPassword = "";
+        const char* apSSID = "Orologio";
+        const char* apPassword = "Orologio2024";
 
         // Imposta l'indirizzo IP dell'AP (192.168.1.1)
         IPAddress local_IP(192, 168, 1, 1);

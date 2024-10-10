@@ -3,6 +3,7 @@
 import Container from "@/components/container.vue";
 import DateTime from "@/components/DateTime.vue";
 import WIFI from "@/components/WIFI.vue";
+import DimTimes from "@/components/dimTimes.vue";
 </script>
 
 <template>
@@ -10,6 +11,9 @@ import WIFI from "@/components/WIFI.vue";
 
     <container title="Data e Ora">
       <date-time></date-time>
+    </container>
+    <container title="Periodo Buio">
+      <dim-times></dim-times>
     </container>
 
     <container title="WiFi">

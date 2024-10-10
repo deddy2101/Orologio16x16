@@ -1,7 +1,8 @@
 export default function useApi() {
-    const baseUrl = 'http://tuo_indirizzo_ip_arduino';  // Base URL per il server
+    const baseUrl = 'http://192.168.1.1';  // Base URL per il server
 
     // Metodo GET generico
+    // @ts-ignore
     const get = async (endpoint: string): Promise<{ status: number, message: string }> => {
         const url = `${baseUrl}${endpoint}`;
 
@@ -22,7 +23,8 @@ export default function useApi() {
     };
 
     // Metodo POST generico
-    const post = async (endpoint: string, data: Record<string, any>): Promise<any> => {
+    // Metodo POST generico corretto
+    const post = async (endpoint: string, data: Record<string, any>): Promise<{ status: number, message: string }> => {
         const url = `${baseUrl}${endpoint}`;
 
         try {
@@ -34,24 +36,25 @@ export default function useApi() {
                 body: new URLSearchParams(data).toString(),
             });
 
-            if (response.ok) {
-                return await response.text();  // Restituisce il messaggio di successo
-            } else {
-                throw new Error(`POST request failed: ${response.statusText}`);
-            }
+            const message = await response.text();  // Leggi il corpo della risposta come testo
+
+            return {
+                status: response.status,  // Restituisce lo stato HTTP
+                message,  // Restituisce il corpo del messaggio
+            };
         } catch (error) {
             console.error('Error in POST:', error);
-            throw error;
+            throw error;  // Solleva l'errore per la gestione esterna
         }
     };
 
-    // Metodo specifico per setInternetTime
-    const setInternetTime = async (useInternetTime: boolean): Promise<string> => {
+
+    // Metodo specifico per setInternetTime corretto
+    const setInternetTime = async (useInternetTime: boolean): Promise<{ status: number, message: string }> => {
         return post('/setInternetTime', { useInternetTime: useInternetTime.toString() });
     };
 
-    // Metodo specifico per setDateTime
-    const setDateTime = async (hour: number, minute: number, second: number, day: number, month: number, year: number): Promise<string> => {
+    const setDateTime = async (hour: number, minute: number, second: number, day: number, month: number, year: number): Promise<{ status: number, message: string }> => {
         const data = {
             hour: hour.toString(),
             minute: minute.toString(),
@@ -65,9 +68,31 @@ export default function useApi() {
     };
 
     // Metodo specifico per ottenere le impostazioni del tempo
-    const getTimeSetting = async (): Promise<string> => {
+    const getTimeSetting = async (): Promise<{ status: number; message: string }> => {
         return get('/getTimeSetting');
     };
+    const getSSID = async (): Promise<{ status: number; message: string }> => {
+        return get('/SSID');
+    }
+    const getWifiPassword = async (): Promise<{ status: number; message: string }> => {
+        return get('/Password');
+    }
+
+    const getSTA = async (): Promise<{ status: number; message: string }> => {
+        return get('/useSTA');
+    }
+
+    const setWifiSettings = async (SSID: string, Password: string, useSTA: boolean): Promise<{ status: number, message: string }> => {
+        return post('/setWifiSettings', { ssid: SSID, password: Password, useSTA: useSTA.toString() });
+    }
+
+    const getDimTime = async (): Promise<{ status: number, message: string }> => {
+        return get('/getDimTimes');
+    }
+
+    const setDimTime = async (startDimTime: string, endDimTime): Promise<{ status: number, message: string }> => {
+        return post('/setDimTimes', { startDimTime: startDimTime, endDimTime: endDimTime });
+    }
 
     return {
         get,
@@ -75,5 +100,11 @@ export default function useApi() {
         setInternetTime,
         setDateTime,
         getTimeSetting,
+        getSSID,
+        getWifiPassword,
+        getSTA,
+        setWifiSettings,
+        getDimTime,
+        setDimTime
     };
 }

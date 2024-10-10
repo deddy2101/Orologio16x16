@@ -3,11 +3,12 @@
 
 // Constructor
 RTCManager::RTCManager() {
-    Wire.begin(33, 35);  // Inizializzazione I2C con i pin specifici per ESP32
 }
 
 void RTCManager::init()
 {
+        Wire.begin(33, 35);  // Inizializzazione I2C con i pin specifici per ESP32
+
     //check if there is a RTC connected making a request to the RTC like the temperature
     if (rtc.getTemperature() == 0)
     {

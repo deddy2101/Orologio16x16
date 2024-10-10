@@ -11,10 +11,12 @@ class Settings {
       char password[32];
       bool useInternetTime;
       bool useSTA;
+      int startDimTime;
+      int endDimTime;
     } config;
     RTCManager *rtc;
     const int EEPROM_SIZE = sizeof(Config);
-    const int EEPROM_ADDRESS = 0;
+    const int EEPROM_ADDRESS = 0x0100;
 
   public:
     // Constructor
@@ -22,6 +24,7 @@ class Settings {
 
     // Load settings from EEPROM
     void loadSettings();
+    void printSettings();
 
     // Save settings to EEPROM
     void saveSettings();
@@ -32,12 +35,14 @@ class Settings {
     void setPassword(const char* password);
     void setUseInternetTime(bool useInternetTime);
     void setUseSTA(bool useSTA);
+    bool setDimTimes(int startDimTime, int endDimTime);
 
     // Getters
     const char* getSSID();
     const char* getPassword();
     bool getUseInternetTime();
     bool getUseSTA();
+    void getDimTimes(int* startDimTime, int* endDimTime) { *startDimTime = config.startDimTime; *endDimTime = config.endDimTime; };
 };
 
 #endif
