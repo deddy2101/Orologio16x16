@@ -16,7 +16,7 @@ class Settings {
     } config;
     RTCManager *rtc;
     const int EEPROM_SIZE = sizeof(Config);
-    const int EEPROM_ADDRESS = 0x0100;
+    const int EEPROM_ADDRESS = 0;
 
   public:
     // Constructor
