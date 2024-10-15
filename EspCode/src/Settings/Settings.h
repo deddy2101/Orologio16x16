@@ -1,8 +1,9 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-#include <EEPROM.h>
 #include "RTCManager/RTCManager.h"
+#include "DisplayManager/DisplayManager.h"
+#include <ArduinoNvs.h>
 
 class Settings {
   private:
@@ -13,20 +14,21 @@ class Settings {
       bool useSTA;
       int startDimTime;
       int endDimTime;
+      int nightDim;
+      int dayDim;
     } config;
     RTCManager *rtc;
-    const int EEPROM_SIZE = sizeof(Config);
-    const int EEPROM_ADDRESS = 0;
+    DisplayManager *display;
 
   public:
     // Constructor
-    Settings(RTCManager *rtc);
+    Settings(RTCManager *rtc, DisplayManager *display);
 
-    // Load settings from EEPROM
+    // Load settings from NVS
     void loadSettings();
     void printSettings();
 
-    // Save settings to EEPROM
+    // Save settings to NVS
     void saveSettings();
     void SetDateTimeToRTC(DateTime dateTime);
 
@@ -36,6 +38,7 @@ class Settings {
     void setUseInternetTime(bool useInternetTime);
     void setUseSTA(bool useSTA);
     bool setDimTimes(int startDimTime, int endDimTime);
+    void setDimValues(int nightDim, int dayDim);
 
     // Getters
     const char* getSSID();
@@ -43,6 +46,7 @@ class Settings {
     bool getUseInternetTime();
     bool getUseSTA();
     void getDimTimes(int* startDimTime, int* endDimTime) { *startDimTime = config.startDimTime; *endDimTime = config.endDimTime; };
+    void getDimValues(int* nightDim, int* dayDim) { *nightDim = config.nightDim; *dayDim = config.dayDim; };
 };
 
 #endif

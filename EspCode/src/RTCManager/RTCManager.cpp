@@ -25,8 +25,11 @@ void RTCManager::init()
 
 // Set the time from NTP server
 void RTCManager::setTimeFromNTP(int datetime[8]) {
-    rtc.setEpoch(datetime[0]); // Imposta l'ora dall'epoch NTP
-    setDayOfWeek(datetime[7]); // Imposta il giorno della settimana
+    //the datetime array format is: hours, min, sec, day, year, month, dayofweek, dayofweek
+    DateTime now = DateTime(datetime[4], datetime[5], datetime[6], datetime[0], datetime[1], datetime[2]);
+    rtc.setEpoch(now.unixtime());  // Imposta l'orologio
+    setDayOfWeek(datetime[7]);     // Imposta il giorno della settimana
+
 }
 
 // Set the time manually

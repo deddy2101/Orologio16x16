@@ -1,21 +1,22 @@
 #include "WiFiManager.h"
 
-WiFiManager::WiFiManager(const char* ssid, const char* password)
-    : ssid(ssid), password(password) {}
+WiFiManager::WiFiManager(Settings *settings) : settings(settings) {}
 
 bool WiFiManager::initWIFI(bool useSTA) {
     if (useSTA) {
+        //get ssid and password from settings
+
         // Modalità WiFi Station (STA)
         WiFi.mode(WIFI_STA);  // Imposta la modalità STA (client WiFi)
-        WiFi.begin(ssid, password);  // Connetti alla rete WiFi con SSID e password
+        WiFi.begin(settings->getSSID(), settings->getPassword());  // Connetti alla rete WiFi con SSID e password
 
         Serial.println("Attempting to connect to WiFi using DHCP...");
 
-        int maxRetries = 20;
+        int maxRetries = 40;
         int retries = 0;
 
         // Attendere la connessione
-        while (WiFi.status() != WL_CONNECTED && retries < maxRetries) {
+        while (WiFi.status() != WL_CONNECTED ) {
             delay(500);
             Serial.print(".");
             retries++;
@@ -26,7 +27,7 @@ bool WiFiManager::initWIFI(bool useSTA) {
         if (WiFi.status() == WL_CONNECTED) {
             // Connessione riuscita
             Serial.print("Connected to ");
-            Serial.println(ssid);
+            Serial.println(settings->getSSID());
             Serial.print("IP address assigned by DHCP: ");
             Serial.println(WiFi.localIP());
             return true;

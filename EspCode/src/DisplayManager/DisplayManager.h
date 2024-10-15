@@ -12,6 +12,7 @@ public:
     void displayString(String text, bool scndRow = false, bool fade = true, bool display = true, struct CRGB color = CRGB::Red);
     void displayDate(int datetime[3]);
     void setMaxBrightness(int brightness) { maxBrightness = brightness; };
+    void blinkSavedSettings();
     void scrollText(String text, CRGB color);
     void scrollTextFull(String text, CRGB color);
 
@@ -26,6 +27,8 @@ private:
     const byte digits[10][7];
     const byte letters[26][7];
     const byte ledMap[256];
+    //matrix to save v [16][16]
+    const bool ok[16][16];
 };
 
 #endif // DISPLAYMANAGER_H
