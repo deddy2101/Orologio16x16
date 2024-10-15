@@ -26,7 +26,7 @@ const handleGetTime = () => {
 const handleSetDatetime = async () => {
   if(isManualTime.value === false) {
     try {
-      const response = await setInternetTime(isManualTime.value);
+      const response = await setInternetTime(!isManualTime.value);
       if (response.status === 200) {
         alert(response.message);
       } else {

@@ -6,9 +6,9 @@
 #include "RTCManager/RTCManager.h"
 
 RTCManager rtc;  // Crea l'oggetto RTCManager
-Settings settings(&rtc);  // Crea l'oggetto Settings
 DisplayManager display(256, 150);
-WiFiManager wifi("SSID", "PASSWORD");
+Settings settings(&rtc, &display);  // Crea l'oggetto Settings
+WiFiManager wifi(&settings);
 TimeManager timeManager(0);
 WebServerManager webServer(&settings);  // Crea l'oggetto WebServerManager
 
@@ -22,16 +22,22 @@ void setup() {
   rtc.init();
   display.initDisplay();
   wifi.initWIFI(settings.getUseSTA());
-  timeManager.init(settings.getUseInternetTime());
-  if(settings.getUseInternetTime())  
+  
+  if(settings.getUseInternetTime() && WiFi.status() == WL_CONNECTED)
   {
+    timeManager.init(settings.getUseInternetTime());
     int datetime[8];
     timeManager.getDateTime(datetime);
+
     rtc.setTimeFromNTP(datetime);
     rtc.setDayOfWeek(datetime[7]);
-  }
+  } 
   webServer.initServer();
-  display.displayString("STA", false, false, true, CRGB::Red);
+  if (settings.getUseSTA()){
+    display.displayString("STA", false, false, true, CRGB::Red);
+  } else {
+    display.displayString("AP", false, false, true, CRGB::Green);
+  }
 }
 
 unsigned long previousMillis = 0;    // Memorizza l'ultimo tempo in cui hai cambiato la visualizzazione
@@ -47,11 +53,15 @@ void checkIfHasToBeDimmed()
   settings.getDimTimes(&startDimTime, &endDimTime);
   if(hour >= startDimTime|| hour < endDimTime)
   {
-    display.setMaxBrightness(10);
+    int nightDim, dayDim;
+    settings.getDimValues(&nightDim, &dayDim);
+    display.setMaxBrightness(nightDim);
   }
   else
   {
-    display.setMaxBrightness(150);
+    int nightDim, dayDim;
+    settings.getDimValues(&nightDim, &dayDim);
+    display.setMaxBrightness(dayDim);
   }
 }
 

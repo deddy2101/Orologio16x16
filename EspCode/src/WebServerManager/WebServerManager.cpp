@@ -65,10 +65,14 @@ void WebServerManager::initServer() {
 
   //enpoint to set dim times
   server.on("/setDimTimes", HTTP_POST, [this](AsyncWebServerRequest *request) {
-    if (request->hasParam("startDimTime", true) && request->hasParam("endDimTime", true)) {
+    if (request->hasParam("startDimTime", true) && request->hasParam("endDimTime", true) && 
+        request->hasParam("nightDim", true) && request->hasParam("dayDim", true)) {
       int startDimTime = request->getParam("startDimTime", true)->value().toInt();
       int endDimTime = request->getParam("endDimTime", true)->value().toInt();
+      int nightDim = request->getParam("nightDim", true)->value().toInt();
+      int dayDim = request->getParam("dayDim", true)->value().toInt();
       bool result = settings->setDimTimes(startDimTime, endDimTime);
+      settings->setDimValues(nightDim, dayDim);
       if (!result) {
         request->send(400, "text/plain", "Invalid parameters");
         return;

@@ -1,5 +1,5 @@
 export default function useApi() {
-    const baseUrl = 'http://192.168.1.1';  // Base URL per il server
+    const baseUrl = window.location.hostname === 'localhost' ? 'http://192.168.1.1' : window.location.origin;
 
     // Metodo GET generico
     // @ts-ignore
@@ -90,9 +90,11 @@ export default function useApi() {
         return get('/getDimTimes');
     }
 
-    const setDimTime = async (startDimTime: string, endDimTime): Promise<{ status: number, message: string }> => {
-        return post('/setDimTimes', { startDimTime: startDimTime, endDimTime: endDimTime });
+    const setDimTime = async (startDimTime: string, endDimTime: string, dayDim:number, nightDim:number): Promise<{ status: number, message: string }> => {
+        return post('/setDimTimes', { startDimTime: startDimTime, endDimTime: endDimTime, nightDim: nightDim, dayDim: dayDim });
     }
+
+
 
     return {
         get,

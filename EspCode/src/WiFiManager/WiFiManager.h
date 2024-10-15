@@ -3,15 +3,15 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
+#include "Settings/Settings.h"
 
 class WiFiManager {
 public:
-    WiFiManager(const char* ssid, const char* password);
+    WiFiManager(Settings *settings);
     bool initWIFI(bool useSTA);
 
 private:
-    const char* ssid;
-    const char* password;
+    Settings *settings;
 };
 
 #endif // WIFIMANAGER_H

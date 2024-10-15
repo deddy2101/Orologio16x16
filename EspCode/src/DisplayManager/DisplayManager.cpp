@@ -58,7 +58,24 @@ DisplayManager::DisplayManager(int numLeds, int maxBrightness)
           207, 206, 205, 204, 203, 202, 201, 200, 199, 198, 197, 196, 195, 194, 193, 192,
           208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223,
           239, 238, 237, 236, 235, 234, 233, 232, 231, 230, 229, 228, 227, 226, 225, 224,
-          240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255}
+          240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255},
+      ok{
+          {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0},
+          {0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0},
+          {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+          {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0},
+          {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0},
+          {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0},
+          {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0},
+          {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0},
+          {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0},
+          {1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0},
+          {1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0},
+          {1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0},
+          {0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+          {0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0},
+          {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0},
+          {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}
 {
 }
 
@@ -286,4 +303,39 @@ void DisplayManager::displayDate(int datetime[3])
     FastLED.show();
     delay(5);
   }
+}
+
+void DisplayManager::blinkSavedSettings()
+{
+  // save the current uploaded ledMatrix
+  CRGB *savedLeds = new CRGB[numLeds];
+  memcpy(savedLeds, leds, numLeds * sizeof(CRGB));
+  // fill the ledMatrix with white
+  fill_solid(leds, numLeds, CRGB::White);
+  FastLED.show();
+  // get the maxBrightness
+  int brght = FastLED.getBrightness();
+
+  // display the ok matrix
+  for (int i = 0; i < 16; i++)
+  {
+    for (int j = 0; j < 16; j++)
+    {
+      if (ok[i][j])
+      {
+        leds[ledMap[i * 16 + j]] = CRGB::Green;
+      }
+      else
+      {
+        leds[ledMap[i * 16 + j]] = CRGB::Black;
+      }
+    }
+  }
+  FastLED.show();
+  delay(1500);
+
+  // restore the saved ledMatrix
+  memcpy(leds, savedLeds, numLeds * sizeof(CRGB));
+  FastLED.show();
+  delete[] savedLeds;
 }
