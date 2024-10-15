@@ -75,7 +75,8 @@ DisplayManager::DisplayManager(int numLeds, int maxBrightness)
           {0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0},
           {0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0},
           {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0},
-          {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}
+          {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
+      dot{0, 0, 0, 0, 0, 0, 1} // Definizione del punto
 {
 }
 
@@ -339,3 +340,66 @@ void DisplayManager::blinkSavedSettings()
   FastLED.show();
   delete[] savedLeds;
 }
+void DisplayManager::scrollText(String text, CRGB color) {
+    if (text.length() <= 3) {
+        return; // Non fare nulla se la stringa è troppo corta
+    }
+
+    int letterWidth = 5;  // Larghezza di ogni lettera
+    int letterHeight = 7; // Altezza di ogni lettera
+
+    // Calcola la posizione iniziale
+    int startX = 0;
+    int textLength = text.length() * (letterWidth + 1); // +1 per lo spazio tra le lettere
+
+    while (startX > -textLength) {
+        FastLED.clear();
+
+        // Disegna ogni carattere nella posizione corrente
+        for (int k = 0; k < text.length(); k++) {
+            char currentChar = text.charAt(k);
+            if (currentChar >= 'a' && currentChar <= 'z') {
+                currentChar = currentChar - 'a' + 'A'; // Converti in maiuscolo
+            }
+
+            int letterIndex = -1; // Indice della lettera o cifra
+            // Determina se il carattere è una lettera, cifra o punto
+            if (currentChar >= 'A' && currentChar <= 'Z') {
+                letterIndex = currentChar - 'A'; // Lettere
+            } else if (currentChar >= '0' && currentChar <= '9') {
+                letterIndex = currentChar - '0' + 26; // Cifre da 0 a 9
+            } else if (currentChar == '.') {
+                letterIndex = 36; // Punto
+            }
+
+            if (letterIndex != -1) {
+                const uint8_t (*currentBitmap)[7]; // Puntatore a un array di 7 elementi
+                int index;
+
+                if (letterIndex < 26) {
+                    currentBitmap = letters; // Lettere
+                    index = letterIndex; // Indice delle lettere
+                } else if (letterIndex < 36) {
+                    currentBitmap = digits; // Cifre
+                    index = letterIndex - 26; // Indice delle cifre
+                } else {
+                    currentBitmap = &dot; // Punto
+                    index = 0; // Punto è unico
+                }
+
+                for (int i = 0; i < letterHeight; i++) {
+                    for (int j = 0; j < letterWidth; j++) {
+                        if (currentBitmap[index][i] & (1 << (letterWidth - 1 - j))) {
+                            leds[ledMap[startX + k * (letterWidth + 1) + j + (11 * i)]] = color; // 11 per lo spazio verticale
+                        }
+                    }
+                }
+            }
+        }
+
+        FastLED.show();
+        startX--; // Sposta la posizione a sinistra
+        delay(100); // Ritardo per controllare la velocità dello scorrimento
+    }
+}
+

@@ -33,11 +33,7 @@ void setup() {
     rtc.setDayOfWeek(datetime[7]);
   } 
   webServer.initServer();
-  if (settings.getUseSTA()){
-    display.displayString("STA", false, false, true, CRGB::Red);
-  } else {
-    display.displayString("AP", false, false, true, CRGB::Green);
-  }
+  display.scrollText(wifi.getLocalIP(), CRGB::Green);
 }
 
 unsigned long previousMillis = 0;    // Memorizza l'ultimo tempo in cui hai cambiato la visualizzazione

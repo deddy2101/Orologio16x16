@@ -65,3 +65,8 @@ bool WiFiManager::initWIFI(bool useSTA) {
         }
     }
 }
+
+String WiFiManager::getLocalIP()
+{
+    return WiFi.localIP().toString();
+}

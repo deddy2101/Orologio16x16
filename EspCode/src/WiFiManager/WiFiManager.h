@@ -9,6 +9,8 @@ class WiFiManager {
 public:
     WiFiManager(Settings *settings);
     bool initWIFI(bool useSTA);
+    //function that returns the IP address of the ESP32 as a string
+    String getLocalIP();
 
 private:
     Settings *settings;
