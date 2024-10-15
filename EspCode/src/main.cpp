@@ -32,6 +32,7 @@ void setup() {
   }
   webServer.initServer();
   display.scrollText(wifi.getLocalIP(), CRGB::Green);
+  display.scrollTextFull("Hello World 123.", CRGB::Red);
 }
 
 unsigned long previousMillis = 0;    // Memorizza l'ultimo tempo in cui hai cambiato la visualizzazione

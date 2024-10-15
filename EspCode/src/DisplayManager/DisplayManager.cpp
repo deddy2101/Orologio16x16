@@ -289,6 +289,8 @@ void DisplayManager::displayDate(int datetime[3])
   }
 }
 
+
+
 void DisplayManager::scrollText(String text, CRGB color) {
     if (text.length() <= 3) {
         return; // Non fare nulla se la stringa è troppo corta
@@ -297,58 +299,125 @@ void DisplayManager::scrollText(String text, CRGB color) {
     int letterWidth = 5;  // Larghezza di ogni lettera
     int letterHeight = 7; // Altezza di ogni lettera
 
-    // Calcola la posizione iniziale
-    int startX = 0;
+    // Calcola la lunghezza del testo (larghezza totale del testo da scorrere)
     int textLength = text.length() * (letterWidth + 1); // +1 per lo spazio tra le lettere
 
-    while (startX > -textLength) {
-        FastLED.clear();
+    // Scorri il testo da destra a sinistra
+    for (int startX = 16; startX > -textLength; startX--) {
+        FastLED.clear(); // Pulisci la matrice dei LED prima di ogni aggiornamento
 
-        // Disegna ogni carattere nella posizione corrente
+        // Disegna ogni carattere alla sua posizione corrente
         for (int k = 0; k < text.length(); k++) {
             char currentChar = text.charAt(k);
+
+            // Converti in maiuscolo se è una lettera minuscola
             if (currentChar >= 'a' && currentChar <= 'z') {
-                currentChar = currentChar - 'a' + 'A'; // Converti in maiuscolo
+                currentChar = currentChar - 'a' + 'A';
             }
 
-            int letterIndex = -1; // Indice della lettera o cifra
-            // Determina se il carattere è una lettera, cifra o punto
-            if (currentChar >= 'A' && currentChar <= 'Z') {
-                letterIndex = currentChar - 'A'; // Lettere
-            } else if (currentChar >= '0' && currentChar <= '9') {
-                letterIndex = currentChar - '0' + 26; // Cifre da 0 a 9
-            } else if (currentChar == '.') {
-                letterIndex = 36; // Punto
-            }
+            // Verifica se il carattere è una lettera o una cifra
+            if ((currentChar >= 'A' && currentChar <= 'Z') || (currentChar >= '0' && currentChar <= '9') || currentChar == '.') {
+                int letterIndex = -1;
 
-            if (letterIndex != -1) {
-                const uint8_t (*currentBitmap)[7]; // Puntatore a un array di 7 elementi
-                int index;
-
-                if (letterIndex < 26) {
-                    currentBitmap = letters; // Lettere
-                    index = letterIndex; // Indice delle lettere
-                } else if (letterIndex < 36) {
-                    currentBitmap = digits; // Cifre
-                    index = letterIndex - 26; // Indice delle cifre
-                } else {
-                    currentBitmap = &dot; // Punto
-                    index = 0; // Punto è unico
+                if (currentChar >= 'A' && currentChar <= 'Z') {
+                    letterIndex = currentChar - 'A';
+                } else if (currentChar >= '0' && currentChar <= '9') {
+                    letterIndex = currentChar - '0' + 26; // Cifre
+                } else if (currentChar == '.') {
+                    letterIndex = 36; // Punto
                 }
 
-                for (int i = 0; i < letterHeight; i++) {
-                    for (int j = 0; j < letterWidth; j++) {
-                        if (currentBitmap[index][i] & (1 << (letterWidth - 1 - j))) {
-                            leds[ledMap[startX + k * (letterWidth + 1) + j + (11 * i)]] = color; // 11 per lo spazio verticale
+                // Disegna la lettera o cifra attuale
+                if (letterIndex != -1) {
+                    for (int i = 0; i < letterHeight; i++) {
+                        for (int j = 0; j < letterWidth; j++) {
+                            if (letters[letterIndex][i] & (1 << (letterWidth - 1 - j))) {
+                                int ledIndex = ledMap[(i * 16) + j + startX + k * (letterWidth + 1)];
+                                if (ledIndex >= 0 && ledIndex < 256) { // Verifica che il ledIndex sia valido
+                                    leds[ledIndex] = color; // Imposta il colore per il LED
+                                }
+                            }
                         }
                     }
                 }
             }
         }
 
-        FastLED.show();
-        startX--; // Sposta la posizione a sinistra
+        FastLED.show(); // Mostra il nuovo frame
         delay(100); // Ritardo per controllare la velocità dello scorrimento
     }
 }
 
+
+void DisplayManager::scrollTextFull(String text, CRGB color) {
+    if (text.length() <= 3) {
+        return; // Non fare nulla se la stringa è troppo corta
+    }
+
+    int letterWidth = 5;  // Larghezza di ogni lettera
+    int letterHeight = 7; // Altezza di ogni lettera
+    int displayWidth = 16; // Larghezza della matrice reale
+    int displayHeight = 16; // Altezza della matrice reale
+
+    // Calcola la lunghezza del testo su una matrice virtuale
+    int textLength = text.length() * (letterWidth + 1); // +1 per lo spazio tra le lettere
+    int virtualWidth = textLength > displayWidth ? textLength : displayWidth; // Larghezza virtuale
+
+    // Crea una matrice virtuale di LED per contenere tutto il testo
+    CRGB virtualLeds[virtualWidth * displayHeight];
+
+    // Pulisci la matrice virtuale
+    fill_solid(virtualLeds, virtualWidth * displayHeight, CRGB::Black);
+
+    // Disegna il testo nella matrice virtuale
+    int currentX = 0;
+    for (int k = 0; k < text.length(); k++) {
+        char currentChar = text.charAt(k);
+
+        // Converti in maiuscolo se è una lettera minuscola
+        if (currentChar >= 'a' && currentChar <= 'z') {
+            currentChar = currentChar - 'a' + 'A';
+        }
+
+        int letterIndex = -1;
+        if (currentChar >= 'A' && currentChar <= 'Z') {
+            letterIndex = currentChar - 'A';
+        } else if (currentChar >= '0' && currentChar <= '9') {
+            letterIndex = currentChar - '0' + 26; // Cifre da 0 a 9 dopo le lettere
+        } else if (currentChar == '.') {
+            letterIndex = 36; // Punto
+        }
+
+        if (letterIndex != -1) {
+            for (int i = 0; i < letterHeight; i++) {
+                for (int j = 0; j < letterWidth; j++) {
+                    if (letters[letterIndex][i] & (1 << (letterWidth - 1 - j))) {
+                        int ledIndex = currentX + j + (i * virtualWidth);
+                        if (ledIndex >= 0 && ledIndex < virtualWidth * displayHeight) {
+                            virtualLeds[ledIndex] = color;
+                        }
+                    }
+                }
+            }
+        }
+        currentX += letterWidth + 1; // Sposta la posizione per la prossima lettera
+    }
+
+    // Scorri la matrice virtuale sul display reale
+    for (int offsetX = 0; offsetX < virtualWidth - displayWidth; offsetX++) {
+        FastLED.clear();
+
+        // Copia la finestra corrente della matrice virtuale nel display reale
+        for (int i = 0; i < displayHeight; i++) {
+            for (int j = 0; j < displayWidth; j++) {
+                int ledIndex = ledMap[(i * displayWidth) + j];
+                if (ledIndex >= 0 && ledIndex < 256) {
+                    leds[ledIndex] = virtualLeds[(i * virtualWidth) + j + offsetX];
+                }
+            }
+        }
+
+        FastLED.show();
+        delay(100); // Ritardo per controllare la velocità dello scorrimento
+    }
+}

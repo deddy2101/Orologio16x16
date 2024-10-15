@@ -13,6 +13,7 @@ public:
     void displayDate(int datetime[3]);
     void setMaxBrightness(int brightness) { maxBrightness = brightness; };
     void scrollText(String text, CRGB color);
+    void scrollTextFull(String text, CRGB color);
 
 public:
     int maxBrightness;
