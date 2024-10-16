@@ -13,7 +13,6 @@ public:
     void displayDate(int datetime[3]);
     void setMaxBrightness(int brightness) { maxBrightness = brightness; };
     void blinkSavedSettings();
-    void scrollText(String text, CRGB color);
     void scrollTextFull(String text, CRGB color);
 
 public:
@@ -25,7 +24,7 @@ private:
     
     CRGB* leds;
     const byte digits[10][7];
-    const byte letters[26][7];
+    const byte letters[37][7];
     const byte ledMap[256];
     //matrix to save v [16][16]
     const bool ok[16][16];

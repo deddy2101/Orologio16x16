@@ -41,6 +41,18 @@ DisplayManager::DisplayManager(int numLeds, int maxBrightness)
           {B1000001, B1000001, B0100010, B0010100, B0100010, B1000001, B1000001}, // X
           {B1000001, B1000001, B0100010, B0010100, B0001000, B0001000, B0001000}, // Y
           {B1111111, B0000001, B0000010, B0000100, B0001000, B0010000, B1111111}, // Z
+          {B0001111, B1011001, B1011001, B1011001, B1011001, B1011001, B0001111}, // 0
+          {B0000110, B0001010, B0000010, B0000010, B0000010, B0000010, B1101111}, // 1
+          {B0101111, B0000001, B0000001, B1101111, B1001000, B1001000, B1101111}, // 2
+          {B1101111, B0000001, B0000001, B0101111, B0000001, B0000001, B1101111}, // 3
+          {B1001001, B1001001, B1001001, B1111111, B0000001, B0000001, B0000001}, // 4
+          {B1111111, B1001000, B1001000, B1111111, B0000001, B0000001, B1111111}, // 5
+          {B0111111, B1001000, B1001000, B1111111, B1001001, B1001001, B0111111}, // 6
+          {B1111111, B0000001, B0000001, B0000001, B0000001, B0000001, B0000001}, // 7
+          {B0001111, B1011001, B1011001, B1011111, B1011001, B1011001, B0001111}, // 8
+          {B0001111, B1011001, B1011001, B1011111, B1010001, B1010001, B0001111}, // 9
+          {B0000000, B0000000, B0000000, B0000000, B0000000, B0000000, B0000001} // . (punto)
+
       },
       ledMap{
           15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0,
@@ -306,63 +318,39 @@ void DisplayManager::displayDate(int datetime[3])
   }
 }
 
+void DisplayManager::blinkSavedSettings()
+{
+  // save the current uploaded ledMatrix
+  CRGB *savedLeds = new CRGB[numLeds];
+  memcpy(savedLeds, leds, numLeds * sizeof(CRGB));
+  // fill the ledMatrix with white
+  fill_solid(leds, numLeds, CRGB::White);
+  FastLED.show();
+  // get the maxBrightness
+  int brght = FastLED.getBrightness();
 
-
-void DisplayManager::scrollText(String text, CRGB color) {
-    if (text.length() <= 3) {
-        return; // Non fare nulla se la stringa è troppo corta
+  // display the ok matrix
+  for (int i = 0; i < 16; i++)
+  {
+    for (int j = 0; j < 16; j++)
+    {
+      if (ok[i][j])
+      {
+        leds[ledMap[i * 16 + j]] = CRGB::Green;
+      }
+      else
+      {
+        leds[ledMap[i * 16 + j]] = CRGB::Black;
+      }
     }
+  }
+  FastLED.show();
+  delay(1500);
 
-    int letterWidth = 5;  // Larghezza di ogni lettera
-    int letterHeight = 7; // Altezza di ogni lettera
-
-    // Calcola la lunghezza del testo (larghezza totale del testo da scorrere)
-    int textLength = text.length() * (letterWidth + 1); // +1 per lo spazio tra le lettere
-
-    // Scorri il testo da destra a sinistra
-    for (int startX = 16; startX > -textLength; startX--) {
-        FastLED.clear(); // Pulisci la matrice dei LED prima di ogni aggiornamento
-
-        // Disegna ogni carattere alla sua posizione corrente
-        for (int k = 0; k < text.length(); k++) {
-            char currentChar = text.charAt(k);
-
-            // Converti in maiuscolo se è una lettera minuscola
-            if (currentChar >= 'a' && currentChar <= 'z') {
-                currentChar = currentChar - 'a' + 'A';
-            }
-
-            // Verifica se il carattere è una lettera o una cifra
-            if ((currentChar >= 'A' && currentChar <= 'Z') || (currentChar >= '0' && currentChar <= '9') || currentChar == '.') {
-                int letterIndex = -1;
-
-                if (currentChar >= 'A' && currentChar <= 'Z') {
-                    letterIndex = currentChar - 'A';
-                } else if (currentChar >= '0' && currentChar <= '9') {
-                    letterIndex = currentChar - '0' + 26; // Cifre
-                } else if (currentChar == '.') {
-                    letterIndex = 36; // Punto
-                }
-
-                // Disegna la lettera o cifra attuale
-                if (letterIndex != -1) {
-                    for (int i = 0; i < letterHeight; i++) {
-                        for (int j = 0; j < letterWidth; j++) {
-                            if (letters[letterIndex][i] & (1 << (letterWidth - 1 - j))) {
-                                int ledIndex = ledMap[(i * 16) + j + startX + k * (letterWidth + 1)];
-                                if (ledIndex >= 0 && ledIndex < 256) { // Verifica che il ledIndex sia valido
-                                    leds[ledIndex] = color; // Imposta il colore per il LED
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        FastLED.show(); // Mostra il nuovo frame
-        delay(100); // Ritardo per controllare la velocità dello scorrimento
-    }
+  // restore the saved ledMatrix
+  memcpy(leds, savedLeds, numLeds * sizeof(CRGB));
+  FastLED.show();
+  delete[] savedLeds;
 }
 
 
@@ -389,36 +377,43 @@ void DisplayManager::scrollTextFull(String text, CRGB color) {
     // Disegna il testo nella matrice virtuale
     int currentX = 0;
     for (int k = 0; k < text.length(); k++) {
-        char currentChar = text.charAt(k);
+    char currentChar = text.charAt(k);
 
-        // Converti in maiuscolo se è una lettera minuscola
-        if (currentChar >= 'a' && currentChar <= 'z') {
-            currentChar = currentChar - 'a' + 'A';
-        }
+    // Converti in maiuscolo se è una lettera minuscola
+    if (currentChar >= 'a' && currentChar <= 'z') {
+        currentChar = currentChar - 'a' + 'A';
+    }
 
-        int letterIndex = -1;
-        if (currentChar >= 'A' && currentChar <= 'Z') {
-            letterIndex = currentChar - 'A';
-        } else if (currentChar >= '0' && currentChar <= '9') {
-            letterIndex = currentChar - '0' + 26; // Cifre da 0 a 9 dopo le lettere
-        } else if (currentChar == '.') {
-            letterIndex = 36; // Punto
-        }
+    int letterIndex = -1;
+    if (currentChar >= 'A' && currentChar <= 'Z') {
+        letterIndex = currentChar - 'A';
+    } else if (currentChar >= '0' && currentChar <= '9') {
+        letterIndex = currentChar - '0' + 26; // Cifre da 0 a 9 dopo le lettere
+    } else if (currentChar == '.') {
+        letterIndex = 36; // Punto
+    }
 
-        if (letterIndex != -1) {
-            for (int i = 0; i < letterHeight; i++) {
-                for (int j = 0; j < letterWidth; j++) {
-                    if (letters[letterIndex][i] & (1 << (letterWidth - 1 - j))) {
-                        int ledIndex = currentX + j + (i * virtualWidth);
-                        if (ledIndex >= 0 && ledIndex < virtualWidth * displayHeight) {
-                            virtualLeds[ledIndex] = color;
-                        }
+    if (letterIndex != -1) {
+        for (int i = 0; i < letterHeight; i++) {
+            for (int j = 0; j < letterWidth; j++) {
+                if (letters[letterIndex][i] & (1 << (letterWidth - 1 - j))) {
+                    int ledIndex = currentX + j + (i * virtualWidth);
+                    if (ledIndex >= 0 && ledIndex < virtualWidth * displayHeight) {
+                        virtualLeds[ledIndex] = color;
                     }
                 }
             }
         }
-        currentX += letterWidth + 1; // Sposta la posizione per la prossima lettera
     }
+
+    // Aggiungi spazio tra le lettere ma non tra numeri e punto
+    if (currentChar == '.' || (currentChar >= '0' && currentChar <= '9')) {
+        currentX += letterWidth;  // Non aggiungere spazio tra numeri e punto
+    } else {
+        currentX += letterWidth + 1;  // Aggiungi spazio tra lettere
+    }
+}
+
 
     // Scorri la matrice virtuale sul display reale
     for (int offsetX = 0; offsetX < virtualWidth - displayWidth; offsetX++) {
@@ -437,4 +432,5 @@ void DisplayManager::scrollTextFull(String text, CRGB color) {
         FastLED.show();
         delay(100); // Ritardo per controllare la velocità dello scorrimento
     }
+
 }

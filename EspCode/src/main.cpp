@@ -33,8 +33,7 @@ void setup() {
     rtc.setDayOfWeek(datetime[7]);
   } 
   webServer.initServer();
-  display.scrollText(wifi.getLocalIP(), CRGB::Green);
-  display.scrollTextFull("Hello World 123.", CRGB::Red);
+  display.scrollTextFull(wifi.getLocalIP(), CRGB::Red);
 }
 
 unsigned long previousMillis = 0;    // Memorizza l'ultimo tempo in cui hai cambiato la visualizzazione
