@@ -10,9 +10,11 @@ const nightDimValue = ref<number>(10);
 onMounted(async () => {
   const response = await getDimTime();
   //in the message there is startdimtime,enddimtime
-  const [startDimTimet, endDimTimet] = response.message.split(',');
+  const [startDimTimet, endDimTimet, nightDim, dayDim ] = response.message.split(',');
   startDimTime.value = startDimTimet;
   endDimTime.value = endDimTimet;
+  dayDimValue.value = parseInt(dayDim);
+  nightDimValue.value = parseInt(nightDim);
 });
 const handleSave = async () => {
   try {

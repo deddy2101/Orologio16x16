@@ -57,9 +57,10 @@ void WebServerManager::initServer() {
 
   // Endpoint to get date start and end dim time (GET)
   server.on("/getDimTimes", HTTP_GET, [this](AsyncWebServerRequest *request) {
-    int startDimTime, endDimTime;
+    int startDimTime, endDimTime, nightDim, dayDim;
     settings->getDimTimes(&startDimTime, &endDimTime);
-    String message = String(startDimTime) + "," + String(endDimTime);
+    settings->getDimValues(&nightDim, &dayDim);
+    String message = String(startDimTime) + "," + String(endDimTime) + ","+ String(nightDim) + "," + String(dayDim);
     request->send(200, "text/plain", message);
   });
 

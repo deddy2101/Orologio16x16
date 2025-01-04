@@ -11,7 +11,7 @@ public:
     void displayTime(int hours, int minutes, bool fade);
     void displayString(String text, bool scndRow = false, bool fade = true, bool display = true, struct CRGB color = CRGB::Red);
     void displayDate(int datetime[3]);
-    void setMaxBrightness(int brightness) { maxBrightness = brightness; };
+    void setMaxBrightness(int brightness) { maxBrightness = brightness;  };
     void blinkSavedSettings();
     void scrollTextFull(String text, CRGB color);
 

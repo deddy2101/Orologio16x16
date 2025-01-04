@@ -62,45 +62,41 @@ void checkIfHasToBeDimmed()
 }
 
 void loop() {
-  
-
   unsigned long currentMillis = millis();  // Ottieni il tempo corrente
   
-  // Controlla se è tempo di cambiare visualizzazione
-  if (showTime && currentMillis - previousMillis >= intervalTime) {
-    checkIfHasToBeDimmed();
-    previousMillis = currentMillis;  // Aggiorna il tempo dell'ultimo cambiamento
-    // Cambia a visualizzazione data
-    DateTime now = rtc.getCurrentTime();
-    //printout all the values
-    Serial.print(now.year(), DEC);
-    Serial.print('/');
-    Serial.print(now.month(), DEC);
-    Serial.print('/');
-    Serial.print(now.day(), DEC);
-    Serial.print(" ");
-    Serial.print(now.hour(), DEC);
-    Serial.print(':');
-    Serial.print(now.minute(), DEC);
-    Serial.print(':');
-    Serial.print(now.second(), DEC);
-    Serial.print(" ");
-    Serial.print(now.dayOfTheWeek(), DEC);
-    Serial.println();
+  // Ottieni l'ora corrente e verifica se è notte
+  DateTime now = rtc.getCurrentTime();
+  int hour = now.hour();
+  int startDimTime, endDimTime;
+  settings.getDimTimes(&startDimTime, &endDimTime);
+  
+  bool isNight = (hour >= startDimTime || hour < endDimTime);
 
-    int day = now.day();
-    int month = now.month();
-    int dayOfWeek = now.dayOfTheWeek();
-    int datetime[3] = {day, month, dayOfWeek};
-    display.displayDate(datetime);  // Mostra la data
-    showTime = false;  // Cambia alla visualizzazione della data
+  if (isNight) {
+    // Durante la notte, mostra solo l'ora
+    if (currentMillis - previousMillis >= intervalTime) {
+      checkIfHasToBeDimmed(); // Regola la luminosità
+      previousMillis = currentMillis;  // Aggiorna il tempo dell'ultimo cambiamento
+      display.displayTime(now.hour(), now.minute(), true);  // Mostra solo l'ora
+    }
+  } else {
+    // Durante il giorno, alterna visualizzazione tra data e ora
+    if (showTime && currentMillis - previousMillis >= intervalTime) {
+      checkIfHasToBeDimmed(); // Regola la luminosità
+      previousMillis = currentMillis;  // Aggiorna il tempo dell'ultimo cambiamento
+      // Cambia a visualizzazione data
+      int day = now.day();
+      int month = now.month();
+      int dayOfWeek = now.dayOfTheWeek();
+      int datetime[3] = {day, month, dayOfWeek};
+      display.displayDate(datetime);  // Mostra la data
+      showTime = false;  // Cambia alla visualizzazione della data
+    } 
+    else if (!showTime && currentMillis - previousMillis >= intervalDate) {
+      previousMillis = currentMillis;  // Aggiorna il tempo dell'ultimo cambiamento
+      // Cambia a visualizzazione ora
+      display.displayTime(now.hour(), now.minute(), true);  // Mostra l'ora
+      showTime = true;  // Cambia alla visualizzazione dell'ora
+    }
   }
-  else if (!showTime && currentMillis - previousMillis >= intervalDate) {
-    previousMillis = currentMillis;  // Aggiorna il tempo dell'ultimo cambiamento
-    // Cambia a visualizzazione ora
-    DateTime now = rtc.getCurrentTime();
-    display.displayTime(now.hour(), now.minute(), true);  // Mostra l'ora
-    showTime = true;  // Cambia alla visualizzazione dell'ora
-  }
-
 }
