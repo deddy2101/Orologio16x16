@@ -14,13 +14,16 @@ public:
     void setMaxBrightness(int brightness) { maxBrightness = brightness;  };
     void blinkSavedSettings();
     void scrollTextFull(String text, CRGB color);
-
+    void displayNigntTime(int hours, int minutes);
 public:
     int maxBrightness;
 private:
     int numLeds;
     const uint8_t dot[7] ;
 
+    // Funzioni per il fade
+    void fadeOut();
+    void fadeIn();
     
     CRGB* leds;
     const byte digits[10][7];

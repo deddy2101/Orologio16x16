@@ -15,6 +15,10 @@
 		{
 			"name": "ESPCode",
 			"path": "../MaddoLight/ESPCode"
+		},
+		{
+			"name": "testC3W5500",
+			"path": "../../Documents/PlatformIO/Projects/testC3W5500"
 		}
 	],
 	"settings": {

@@ -32,8 +32,23 @@ void setup() {
     rtc.setTimeFromNTP(datetime);
     rtc.setDayOfWeek(datetime[7]);
   } 
+
   webServer.initServer();
-  display.scrollTextFull(wifi.getLocalIP(), CRGB::Red);
+  display.scrollTextFull("ciao come va 192.168.1.125", CRGB::Red);
+  //print the time
+  DateTime now = rtc.getCurrentTime();
+  Serial.print(now.year());
+  Serial.print("-");
+  Serial.print(now.month());
+  Serial.print("-");
+  Serial.print(now.day());
+  Serial.print(" ");
+  Serial.print(now.hour());
+  Serial.print(":");
+  Serial.print(now.minute());
+  Serial.print(":");
+  Serial.println(now.second());
+
 }
 
 unsigned long previousMillis = 0;    // Memorizza l'ultimo tempo in cui hai cambiato la visualizzazione
@@ -66,9 +81,13 @@ void loop() {
   
   // Ottieni l'ora corrente e verifica se è notte
   DateTime now = rtc.getCurrentTime();
+  //set a fixed now
+  //DateTime now = DateTime(2021, 9, 1, 20, 0, 0);
   int hour = now.hour();
   int startDimTime, endDimTime;
   settings.getDimTimes(&startDimTime, &endDimTime);
+
+      
   
   bool isNight = (hour >= startDimTime || hour < endDimTime);
 
@@ -77,7 +96,7 @@ void loop() {
     if (currentMillis - previousMillis >= intervalTime) {
       checkIfHasToBeDimmed(); // Regola la luminosità
       previousMillis = currentMillis;  // Aggiorna il tempo dell'ultimo cambiamento
-      display.displayTime(now.hour(), now.minute(), true);  // Mostra solo l'ora
+      display.displayNigntTime(now.hour(), now.minute());  // Mostra solo l'ora
     }
   } else {
     // Durante il giorno, alterna visualizzazione tra data e ora
@@ -91,12 +110,14 @@ void loop() {
       int datetime[3] = {day, month, dayOfWeek};
       display.displayDate(datetime);  // Mostra la data
       showTime = false;  // Cambia alla visualizzazione della data
+      
     } 
     else if (!showTime && currentMillis - previousMillis >= intervalDate) {
       previousMillis = currentMillis;  // Aggiorna il tempo dell'ultimo cambiamento
       // Cambia a visualizzazione ora
       display.displayTime(now.hour(), now.minute(), true);  // Mostra l'ora
       showTime = true;  // Cambia alla visualizzazione dell'ora
+      
     }
   }
 }
