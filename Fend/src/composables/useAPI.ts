@@ -86,6 +86,12 @@ export default function useApi() {
         return post('/setWifiSettings', { ssid: SSID, password: Password, useSTA: useSTA.toString() });
     }
 
+    const setSnow = async (snow: boolean): Promise<{ status: number, message: string }> => {
+        return post('/setSnow', { snow: snow.toString() });
+    }
+    const getSnow = async (): Promise<{ status: number; message: string }> => {
+        return get('/snow');
+    }
     const getDimTime = async (): Promise<{ status: number, message: string }> => {
         return get('/getDimTimes');
     }
@@ -107,6 +113,8 @@ export default function useApi() {
         getSTA,
         setWifiSettings,
         getDimTime,
-        setDimTime
+        setDimTime,
+        getSnow,
+        setSnow
     };
 }

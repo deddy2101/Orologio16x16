@@ -16,6 +16,7 @@ class Settings {
       int endDimTime;
       int nightDim;
       int dayDim;
+      bool snow;
     } config;
     RTCManager *rtc;
     DisplayManager *display;
@@ -39,12 +40,14 @@ class Settings {
     void setUseSTA(bool useSTA);
     bool setDimTimes(int startDimTime, int endDimTime);
     void setDimValues(int nightDim, int dayDim);
+    void setShowSnow(bool snow);
 
     // Getters
     const char* getSSID();
     const char* getPassword();
     bool getUseInternetTime();
     bool getUseSTA();
+    bool getUseSnow();
     void getDimTimes(int* startDimTime, int* endDimTime) { *startDimTime = config.startDimTime; *endDimTime = config.endDimTime; };
     void getDimValues(int* nightDim, int* dayDim) { *nightDim = config.nightDim; *dayDim = config.dayDim; };
 };

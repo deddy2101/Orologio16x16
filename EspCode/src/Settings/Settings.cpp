@@ -34,6 +34,8 @@ void Settings::loadSettings() {
   config.nightDim = NVS.getInt("nightDim", 0);  // default 0
   config.dayDim = NVS.getInt("dayDim", 255);  // default 255
 
+  config.snow = NVS.getInt("snow", true);  // default 255
+
   printSettings();
 }
 
@@ -57,6 +59,7 @@ void Settings::saveSettings() {
   NVS.setInt("nightDim", config.nightDim);
   NVS.setInt("dayDim", config.dayDim);
 
+  NVS.setInt("snow", config.snow);
   NVS.commit();  // Assicurati di salvare le modifiche
     display->blinkSavedSettings();
 
@@ -69,6 +72,9 @@ void Settings::SetDateTimeToRTC(DateTime dateTime)
   display->blinkSavedSettings();
 }
 
+void Settings::setShowSnow(bool snow) {
+  this->config.snow = snow ;
+}
 void Settings::setSSID(const char* ssid) {
   memset(config.ssid, 0, sizeof(config.ssid));
   memcpy(config.ssid, ssid, min(strlen(ssid), sizeof(config.ssid) - 1));
@@ -126,6 +132,11 @@ bool Settings::getUseInternetTime() {
 
 bool Settings::getUseSTA() {
   return config.useSTA;
+}
+
+bool Settings::getUseSnow()
+{
+    return config.snow;
 }
 
 void Settings::printSettings() {

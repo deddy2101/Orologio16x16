@@ -9,21 +9,44 @@ public:
     DisplayManager(int numLeds, int maxBrightness);
     void initDisplay();
     void displayTime(int hours, int minutes, bool fade);
+    void displayTimeContinuous(int hours, int minutes);
     void displayString(String text, bool scndRow = false, bool fade = true, bool display = true, struct CRGB color = CRGB::Red);
     void displayDate(int datetime[3]);
     void setMaxBrightness(int brightness) { maxBrightness = brightness;  };
     void blinkSavedSettings();
     void scrollTextFull(String text, CRGB color);
     void displayNigntTime(int hours, int minutes);
+    // Funzioni per il fade
+    void fadeOut();
+    void fadeIn();
+    
+    // Funzioni per l'effetto neve
+    void updateSnow();
+    void applySnowOverlay();
+    void enableSnow(bool enable) { snowEnabled = enable; }
+    void saveBaseDisplay();  // Salva lo stato attuale del display
+    
 public:
     int maxBrightness;
 private:
     int numLeds;
     const uint8_t dot[7] ;
+    
+    // Variabili per l'effetto neve
+    bool snowEnabled;
+    static const int MATRIX_WIDTH = 16;
+    static const int MATRIX_HEIGHT = 16;
+    static const int MAX_SNOWFLAKES = 8;
+    struct Snowflake {
+        int x;
+        int y;
+        bool active;
+    };
+    Snowflake snowflakes[MAX_SNOWFLAKES];
+    unsigned long lastSnowUpdate;
+    CRGB* baseDisplay;  // Buffer per salvare il display senza neve
 
-    // Funzioni per il fade
-    void fadeOut();
-    void fadeIn();
+    
     
     CRGB* leds;
     const byte digits[10][7];

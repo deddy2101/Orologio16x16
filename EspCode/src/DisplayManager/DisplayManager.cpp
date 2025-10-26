@@ -88,8 +88,19 @@ DisplayManager::DisplayManager(int numLeds, int maxBrightness)
           {0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0},
           {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0},
           {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
-      dot{0, 0, 0, 0, 0, 0, 1} // Definizione del punto
+      dot{0, 0, 0, 0, 0, 0, 1}, // Definizione del punto
+      snowEnabled(false),
+      lastSnowUpdate(0),
+      baseDisplay(new CRGB[numLeds])  // Alloca buffer per display base
 {
+    // Inizializza tutti i fiocchi come inattivi
+    for (int i = 0; i < MAX_SNOWFLAKES; i++) {
+        snowflakes[i].active = false;
+    }
+    // Inizializza baseDisplay a nero
+    for (int i = 0; i < numLeds; i++) {
+        baseDisplay[i] = CRGB::Black;
+    }
 }
 
 void DisplayManager::initDisplay()
@@ -457,7 +468,7 @@ void DisplayManager::scrollTextFull(String text, CRGB color) {
 
     // Disegna il testo nella matrice virtuale, partendo da displayWidth (margine iniziale)
     int currentX = displayWidth;
-    dotWidth = 2; // Larghezza speciale per il punto
+     dotWidth = 2; // Larghezza speciale per il punto
     
     for (int k = 0; k < text.length(); k++) {
         char currentChar = text.charAt(k);
@@ -543,4 +554,78 @@ void DisplayManager::scrollTextFull(String text, CRGB color) {
 
     // Libera la memoria allocata dinamicamente
     delete[] virtualLeds;
+}
+
+// Funzione per salvare lo stato attuale del display (senza neve)
+void DisplayManager::saveBaseDisplay() {
+    // Copia l'array leds in baseDisplay
+    for (int i = 0; i < numLeds; i++) {
+        baseDisplay[i] = leds[i];
+    }
+}
+
+// Funzione per aggiornare la neve
+void DisplayManager::updateSnow() {
+    if (!snowEnabled) return;
+    
+    unsigned long currentMillis = millis();
+    
+    // Aggiorna ogni 200ms per una caduta fluida
+    if (currentMillis - lastSnowUpdate < 200) return;
+    lastSnowUpdate = currentMillis;
+    
+    // Fa cadere i fiocchi esistenti
+    for (int i = 0; i < MAX_SNOWFLAKES; i++) {
+        if (snowflakes[i].active) {
+            snowflakes[i].y++;
+            
+            // Se il fiocco raggiunge il fondo, disattivalo
+            if (snowflakes[i].y >= MATRIX_HEIGHT) {
+                snowflakes[i].active = false;
+            }
+        }
+    }
+    
+    // Genera nuovi fiocchi casualmente (non troppi)
+    // Probabilità del 30% di generare un nuovo fiocco ad ogni aggiornamento
+    if (random(0, 100) < 30) {
+        // Trova uno slot libero
+        for (int i = 0; i < MAX_SNOWFLAKES; i++) {
+            if (!snowflakes[i].active) {
+                snowflakes[i].x = random(0, MATRIX_WIDTH);
+                snowflakes[i].y = 0;
+                snowflakes[i].active = true;
+                break; // Genera solo un fiocco alla volta
+            }
+        }
+    }
+}
+
+// Funzione per applicare l'overlay della neve
+void DisplayManager::applySnowOverlay() {
+    if (!snowEnabled) return;
+    
+    // PRIMA: Ripristina il display base (senza neve)
+    for (int i = 0; i < numLeds; i++) {
+        leds[i] = baseDisplay[i];
+    }
+    
+    // POI: Disegna ogni fiocco attivo come pixel bianco
+    for (int i = 0; i < MAX_SNOWFLAKES; i++) {
+        if (snowflakes[i].active) {
+            int x = snowflakes[i].x;
+            int y = snowflakes[i].y;
+            
+            // Calcola l'indice del LED nella matrice
+            if (x >= 0 && x < MATRIX_WIDTH && y >= 0 && y < MATRIX_HEIGHT) {
+                int matrixIndex = y * MATRIX_WIDTH + x;
+                int ledIndex = ledMap[matrixIndex];
+                
+                // Applica il pixel bianco per la neve
+                if (ledIndex >= 0 && ledIndex < numLeds) {
+                    leds[ledIndex] = CRGB::White;
+                }
+            }
+        }
+    }
 }

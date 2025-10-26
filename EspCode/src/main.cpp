@@ -34,7 +34,11 @@ void setup() {
   } 
 
   webServer.initServer();
-  display.scrollTextFull("ciao come va 192.168.1.125", CRGB::Red);
+  display.scrollTextFull("Deddys clock", CRGB::Red);
+  
+  // Abilita l'effetto neve
+  display.enableSnow(settings.getUseSnow());
+  
   //print the time
   DateTime now = rtc.getCurrentTime();
   Serial.print(now.year());
@@ -77,6 +81,10 @@ void checkIfHasToBeDimmed()
 }
 
 void loop() {
+  // Aggiorna la posizione dei fiocchi di neve
+  display.enableSnow(settings.getUseSnow());
+  display.updateSnow();
+  
   unsigned long currentMillis = millis();  // Ottieni il tempo corrente
   
   // Ottieni l'ora corrente e verifica se è notte
@@ -97,6 +105,9 @@ void loop() {
       checkIfHasToBeDimmed(); // Regola la luminosità
       previousMillis = currentMillis;  // Aggiorna il tempo dell'ultimo cambiamento
       display.displayNigntTime(now.hour(), now.minute());  // Mostra solo l'ora
+      display.saveBaseDisplay();  // Salva lo stato senza neve
+      display.applySnowOverlay();  // Applica l'effetto neve
+      FastLED.show();  // Aggiorna il display con la neve
     }
   } else {
     // Durante il giorno, alterna visualizzazione tra data e ora
@@ -109,6 +120,9 @@ void loop() {
       int dayOfWeek = now.dayOfTheWeek();
       int datetime[3] = {day, month, dayOfWeek};
       display.displayDate(datetime);  // Mostra la data
+      display.saveBaseDisplay();  // Salva lo stato senza neve
+      display.applySnowOverlay();  // Applica l'effetto neve
+      FastLED.show();  // Aggiorna il display con la neve
       showTime = false;  // Cambia alla visualizzazione della data
       
     } 
@@ -116,8 +130,20 @@ void loop() {
       previousMillis = currentMillis;  // Aggiorna il tempo dell'ultimo cambiamento
       // Cambia a visualizzazione ora
       display.displayTime(now.hour(), now.minute(), true);  // Mostra l'ora
+      display.saveBaseDisplay();  // Salva lo stato senza neve
+      display.applySnowOverlay();  // Applica l'effetto neve
+      FastLED.show();  // Aggiorna il display con la neve
       showTime = true;  // Cambia alla visualizzazione dell'ora
       
     }
+  }
+  
+  // Aggiorna la visualizzazione della neve continuamente (ogni 200ms circa)
+  // Questo permette alla neve di cadere in modo fluido anche tra i cambi di visualizzazione
+  static unsigned long lastSnowDisplay = 0;
+  if (millis() - lastSnowDisplay >= 200) {
+    lastSnowDisplay = millis();
+    display.applySnowOverlay();
+    FastLED.show();
   }
 }
