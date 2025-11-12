@@ -3,7 +3,9 @@
 // Inizializza il puntatore statico
 WebSocketManager* WebSocketManager::instance = nullptr;
 
-WebSocketManager::WebSocketManager() : ws("/ws"), lastCommand(CMD_NONE), commandAvailable(false) {
+WebSocketManager::WebSocketManager() : ws("/ws"), commandAvailable(false) {
+    lastInput.command = CMD_NONE;
+    lastInput.player = 0;
     instance = this;
 }
 
@@ -21,7 +23,7 @@ void WebSocketManager::onWebSocketEvent(AsyncWebSocket *server, AsyncWebSocketCl
                                          AwsEventType type, void *arg, uint8_t *data, size_t len) {
     if (type == WS_EVT_CONNECT) {
         Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
-        client->text("Connected to ESP32 Snake Game");
+        client->text("Connected to ESP32 Game Server");
         
     } else if (type == WS_EVT_DISCONNECT) {
         Serial.printf("WebSocket client #%u disconnected\n", client->id());
@@ -47,33 +49,50 @@ void WebSocketManager::handleMessage(String message) {
     Serial.print("WebSocket received: ");
     Serial.println(message);
     
+    // Formato dei messaggi per PingPong: "P1:UP", "P2:DOWN", ecc.
+    // Per Snake: "UP", "DOWN", "START", ecc.
+    
+    int player = 0;
+    GameCommand cmd = CMD_NONE;
+    
+    // Controlla se il messaggio contiene un identificatore di giocatore
+    if (message.startsWith("P1:")) {
+        player = 1;
+        message = message.substring(3); // Rimuovi "P1:"
+    } else if (message.startsWith("P2:")) {
+        player = 2;
+        message = message.substring(3); // Rimuovi "P2:"
+    }
+    
     // Mappa i messaggi ai comandi
     if (message == "START" || message == "START_SNAKE") {
-        lastCommand = CMD_START_SNAKE;
-        commandAvailable = true;
+        cmd = CMD_START_SNAKE;
     } 
+    else if (message == "START_PONG" || message == "PONG") {
+        cmd = CMD_START_PONG;
+    }
     else if (message == "STOP" || message == "STOP_GAME") {
-        lastCommand = CMD_STOP_GAME;
-        commandAvailable = true;
+        cmd = CMD_STOP_GAME;
     }
     else if (message == "UP" || message == "W") {
-        lastCommand = CMD_UP;
-        commandAvailable = true;
+        cmd = CMD_UP;
     }
     else if (message == "DOWN" || message == "S") {
-        lastCommand = CMD_DOWN;
-        commandAvailable = true;
+        cmd = CMD_DOWN;
     }
     else if (message == "LEFT" || message == "A") {
-        lastCommand = CMD_LEFT;
-        commandAvailable = true;
+        cmd = CMD_LEFT;
     }
     else if (message == "RIGHT" || message == "D") {
-        lastCommand = CMD_RIGHT;
-        commandAvailable = true;
+        cmd = CMD_RIGHT;
     }
     else if (message == "PAUSE") {
-        lastCommand = CMD_PAUSE;
+        cmd = CMD_PAUSE;
+    }
+    
+    if (cmd != CMD_NONE) {
+        lastInput.command = cmd;
+        lastInput.player = player;
         commandAvailable = true;
     }
 }
@@ -81,11 +100,24 @@ void WebSocketManager::handleMessage(String message) {
 GameCommand WebSocketManager::getCommand() {
     if (commandAvailable) {
         commandAvailable = false;
-        GameCommand cmd = lastCommand;
-        lastCommand = CMD_NONE;
+        GameCommand cmd = lastInput.command;
+        lastInput.command = CMD_NONE;
+        lastInput.player = 0;
         return cmd;
     }
     return CMD_NONE;
+}
+
+GameInput WebSocketManager::getInput() {
+    if (commandAvailable) {
+        commandAvailable = false;
+        GameInput input = lastInput;
+        lastInput.command = CMD_NONE;
+        lastInput.player = 0;
+        return input;
+    }
+    GameInput emptyInput = {CMD_NONE, 0};
+    return emptyInput;
 }
 
 bool WebSocketManager::hasCommand() {

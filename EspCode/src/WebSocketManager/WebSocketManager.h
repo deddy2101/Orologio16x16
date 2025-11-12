@@ -8,6 +8,7 @@
 enum GameCommand {
     CMD_NONE,
     CMD_START_SNAKE,
+    CMD_START_PONG,
     CMD_STOP_GAME,
     CMD_UP,
     CMD_DOWN,
@@ -16,10 +17,16 @@ enum GameCommand {
     CMD_PAUSE
 };
 
+// Struct per memorizzare comando e giocatore
+struct GameInput {
+    GameCommand command;
+    int player;  // 0 = nessuno, 1 = giocatore 1, 2 = giocatore 2
+};
+
 class WebSocketManager {
 private:
     AsyncWebSocket ws;
-    GameCommand lastCommand;
+    GameInput lastInput;
     bool commandAvailable;
     
     // Callback per gestire gli eventi WebSocket
@@ -40,6 +47,9 @@ public:
     
     // Ottiene l'ultimo comando ricevuto e lo resetta
     GameCommand getCommand();
+    
+    // Ottiene l'ultimo input completo (comando + giocatore)
+    GameInput getInput();
     
     // Verifica se c'è un comando disponibile
     bool hasCommand();

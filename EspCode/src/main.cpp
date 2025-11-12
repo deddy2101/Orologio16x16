@@ -6,11 +6,13 @@
 #include "RTCManager/RTCManager.h"
 #include "WebSocketManager/WebSocketManager.h"
 #include "SnakeGame/SnakeGame.h"
+#include "PingPongGame/PingPongGame.h"
 
 // Enum per le modalità operative
 enum OperationMode {
   MODE_CLOCK,
-  MODE_GAME
+  MODE_SNAKE,
+  MODE_PONG
 };
 
 RTCManager rtc;
@@ -21,6 +23,7 @@ TimeManager timeManager(0);
 WebServerManager webServer(&settings);
 WebSocketManager wsManager;
 SnakeGame snakeGame(&display, &wsManager);
+PingPongGame pongGame(&display, &wsManager);
 
 OperationMode currentMode = MODE_CLOCK;
 
@@ -51,8 +54,9 @@ void setup() {
   // Inizializza il WebSocket Manager DOPO il web server
   wsManager.init(&webServer.server);
   
-  // Inizializza il gioco Snake
+  // Inizializza i giochi
   snakeGame.init();
+  pongGame.init();
   
   display.scrollTextFull("Deddys clock", CRGB::Red);
   
@@ -74,7 +78,7 @@ void setup() {
   Serial.println(now.second());
 
   Serial.println("Setup completato!");
-  Serial.println("Invia 'START' via WebSocket per giocare a Snake");
+  Serial.println("Invia 'START_SNAKE' o 'START_PONG' via WebSocket per giocare");
 }
 
 unsigned long previousMillis = 0;
@@ -164,25 +168,41 @@ void runClockMode() {
 void loop() {
   // Controlla i comandi WebSocket
   if (wsManager.hasCommand()) {
-    GameCommand cmd = wsManager.getCommand();
+    GameInput input = wsManager.getInput();
     
-    // Se riceviamo START_SNAKE, passiamo alla modalità gioco
-    if (cmd == CMD_START_SNAKE) {
-      currentMode = MODE_GAME;
+    // Se riceviamo START_SNAKE, passiamo alla modalità Snake
+    if (input.command == CMD_START_SNAKE) {
+      currentMode = MODE_SNAKE;
       display.enableSnow(false); // Disabilita la neve durante il gioco
-      snakeGame.handleCommand(cmd);
-      Serial.println("Switched to GAME mode");
+      snakeGame.handleCommand(input.command);
+      Serial.println("Switched to SNAKE mode");
+    }
+    // Se riceviamo START_PONG, passiamo alla modalità Ping Pong
+    else if (input.command == CMD_START_PONG) {
+      currentMode = MODE_PONG;
+      display.enableSnow(false); // Disabilita la neve durante il gioco
+      pongGame.handleCommand(input.command, 0);
+      Serial.println("Switched to PONG mode");
     }
     // Se riceviamo STOP_GAME, torniamo alla modalità orologio
-    else if (cmd == CMD_STOP_GAME) {
-      snakeGame.handleCommand(cmd);
+    else if (input.command == CMD_STOP_GAME) {
+      if (currentMode == MODE_SNAKE) {
+        snakeGame.handleCommand(input.command);
+      } else if (currentMode == MODE_PONG) {
+        pongGame.handleCommand(input.command, 0);
+      }
       currentMode = MODE_CLOCK;
       display.enableSnow(settings.getUseSnow()); // Riabilita la neve
       Serial.println("Switched to CLOCK mode");
     }
-    // Altri comandi vanno al gioco
+    // Altri comandi vanno al gioco appropriato
     else {
-      snakeGame.handleCommand(cmd);
+      if (currentMode == MODE_SNAKE) {
+        snakeGame.handleCommand(input.command);
+      } else if (currentMode == MODE_PONG) {
+        // Per Ping Pong, passa anche il numero del giocatore
+        pongGame.handleCommand(input.command, input.player);
+      }
     }
   }
   
@@ -190,7 +210,7 @@ void loop() {
   if (currentMode == MODE_CLOCK) {
     runClockMode();
   } 
-  else if (currentMode == MODE_GAME) {
+  else if (currentMode == MODE_SNAKE) {
     snakeGame.update();
     
     // Se il gioco è finito, torna automaticamente alla modalità orologio dopo 3 secondi
@@ -205,6 +225,24 @@ void loop() {
         display.enableSnow(settings.getUseSnow());
         gameOverTime = 0;
         Serial.println("Auto-switched to CLOCK mode after game over");
+      }
+    }
+  }
+  else if (currentMode == MODE_PONG) {
+    pongGame.update();
+    
+    // Se il gioco è finito, torna automaticamente alla modalità orologio dopo 3 secondi
+    if (pongGame.getState() == PONG_GAME_OVER) {
+      static unsigned long pongGameOverTime = 0;
+      if (pongGameOverTime == 0) {
+        pongGameOverTime = millis();
+      }
+      
+      if (millis() - pongGameOverTime > 3000) {
+        currentMode = MODE_CLOCK;
+        display.enableSnow(settings.getUseSnow());
+        pongGameOverTime = 0;
+        Serial.println("Auto-switched to CLOCK mode after pong game over");
       }
     }
   }
