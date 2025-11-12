@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <FastLED.h>
+#include "commonTypes.h"
 
 class DisplayManager {
 public:
@@ -16,6 +17,7 @@ public:
     void blinkSavedSettings();
     void scrollTextFull(String text, CRGB color);
     void displayNigntTime(int hours, int minutes);
+    
     // Funzioni per il fade
     void fadeOut();
     void fadeIn();
@@ -26,11 +28,18 @@ public:
     void enableSnow(bool enable) { snowEnabled = enable; }
     void saveBaseDisplay();  // Salva lo stato attuale del display
     
-public:
+    // Funzioni per il gioco Snake
+    void drawSnakeGame(Position* snake, int snakeLength, Position food);
+    void clearDisplay();
+    
+    // Membri pubblici (necessari per accesso esterno)
+    CRGB* leds;
+    const byte ledMap[256];
     int maxBrightness;
+    
 private:
     int numLeds;
-    const uint8_t dot[7] ;
+    const uint8_t dot[7];
     
     // Variabili per l'effetto neve
     bool snowEnabled;
@@ -45,14 +54,9 @@ private:
     Snowflake snowflakes[MAX_SNOWFLAKES];
     unsigned long lastSnowUpdate;
     CRGB* baseDisplay;  // Buffer per salvare il display senza neve
-
     
-    
-    CRGB* leds;
     const byte digits[10][7];
     const byte letters[37][7];
-    const byte ledMap[256];
-    //matrix to save v [16][16]
     const bool ok[16][16];
 };
 

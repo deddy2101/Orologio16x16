@@ -9,13 +9,13 @@
 
 class WebServerManager {
   private:
-    AsyncWebServer server;
+    
     Settings* settings;
 
   public:
     // Constructor
     WebServerManager(Settings* settings);
-
+    AsyncWebServer server;
     // Initialize the web server and OTA
     void initServer();
 };

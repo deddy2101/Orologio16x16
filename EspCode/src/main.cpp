@@ -4,13 +4,25 @@
 #include "Settings/Settings.h"
 #include "WebServerManager/WebServerManager.h"
 #include "RTCManager/RTCManager.h"
+#include "WebSocketManager/WebSocketManager.h"
+#include "SnakeGame/SnakeGame.h"
 
-RTCManager rtc;  // Crea l'oggetto RTCManager
+// Enum per le modalità operative
+enum OperationMode {
+  MODE_CLOCK,
+  MODE_GAME
+};
+
+RTCManager rtc;
 DisplayManager display(256, 150);
-Settings settings(&rtc, &display);  // Crea l'oggetto Settings
+Settings settings(&rtc, &display);
 WiFiManager wifi(&settings);
 TimeManager timeManager(0);
-WebServerManager webServer(&settings);  // Crea l'oggetto WebServerManager
+WebServerManager webServer(&settings);
+WebSocketManager wsManager;
+SnakeGame snakeGame(&display, &wsManager);
+
+OperationMode currentMode = MODE_CLOCK;
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -18,6 +30,7 @@ void setup() {
   Serial.begin(115200);
   delay(2000);
   Serial.println("Inizializzazione...");
+  
   settings.loadSettings();
   rtc.init();
   display.initDisplay();
@@ -34,6 +47,13 @@ void setup() {
   } 
 
   webServer.initServer();
+  
+  // Inizializza il WebSocket Manager DOPO il web server
+  wsManager.init(&webServer.server);
+  
+  // Inizializza il gioco Snake
+  snakeGame.init();
+  
   display.scrollTextFull("Deddys clock", CRGB::Red);
   
   // Abilita l'effetto neve
@@ -53,11 +73,13 @@ void setup() {
   Serial.print(":");
   Serial.println(now.second());
 
+  Serial.println("Setup completato!");
+  Serial.println("Invia 'START' via WebSocket per giocare a Snake");
 }
 
-unsigned long previousMillis = 0;    // Memorizza l'ultimo tempo in cui hai cambiato la visualizzazione
-const long intervalTime = 20000;     // Intervallo per la visualizzazione dell'ora (20 secondi)
-const long intervalDate = 10000;     // Intervallo per la visualizzazione della data (10 secondi)
+unsigned long previousMillis = 0;
+const long intervalTime = 20000;
+const long intervalDate = 10000;
 bool showTime = true; 
 
 void checkIfHasToBeDimmed()
@@ -80,70 +102,110 @@ void checkIfHasToBeDimmed()
   }
 }
 
-void loop() {
+void runClockMode() {
   // Aggiorna la posizione dei fiocchi di neve
   display.enableSnow(settings.getUseSnow());
   display.updateSnow();
   
-  unsigned long currentMillis = millis();  // Ottieni il tempo corrente
+  unsigned long currentMillis = millis();
   
-  // Ottieni l'ora corrente e verifica se è notte
   DateTime now = rtc.getCurrentTime();
-  //set a fixed now
-  //DateTime now = DateTime(2021, 9, 1, 20, 0, 0);
   int hour = now.hour();
   int startDimTime, endDimTime;
   settings.getDimTimes(&startDimTime, &endDimTime);
-
-      
   
   bool isNight = (hour >= startDimTime || hour < endDimTime);
 
   if (isNight) {
     // Durante la notte, mostra solo l'ora
     if (currentMillis - previousMillis >= intervalTime) {
-      checkIfHasToBeDimmed(); // Regola la luminosità
-      previousMillis = currentMillis;  // Aggiorna il tempo dell'ultimo cambiamento
-      display.displayNigntTime(now.hour(), now.minute());  // Mostra solo l'ora
-      display.saveBaseDisplay();  // Salva lo stato senza neve
-      display.applySnowOverlay();  // Applica l'effetto neve
-      FastLED.show();  // Aggiorna il display con la neve
+      checkIfHasToBeDimmed();
+      previousMillis = currentMillis;
+      display.displayNigntTime(now.hour(), now.minute());
+      display.saveBaseDisplay();
+      display.applySnowOverlay();
+      FastLED.show();
     }
   } else {
     // Durante il giorno, alterna visualizzazione tra data e ora
     if (showTime && currentMillis - previousMillis >= intervalTime) {
-      checkIfHasToBeDimmed(); // Regola la luminosità
-      previousMillis = currentMillis;  // Aggiorna il tempo dell'ultimo cambiamento
-      // Cambia a visualizzazione data
+      checkIfHasToBeDimmed();
+      previousMillis = currentMillis;
       int day = now.day();
       int month = now.month();
       int dayOfWeek = now.dayOfTheWeek();
       int datetime[3] = {day, month, dayOfWeek};
-      display.displayDate(datetime);  // Mostra la data
-      display.saveBaseDisplay();  // Salva lo stato senza neve
-      display.applySnowOverlay();  // Applica l'effetto neve
-      FastLED.show();  // Aggiorna il display con la neve
-      showTime = false;  // Cambia alla visualizzazione della data
+      display.displayDate(datetime);
+      display.saveBaseDisplay();
+      display.applySnowOverlay();
+      FastLED.show();
+      showTime = false;
       
     } 
     else if (!showTime && currentMillis - previousMillis >= intervalDate) {
-      previousMillis = currentMillis;  // Aggiorna il tempo dell'ultimo cambiamento
-      // Cambia a visualizzazione ora
-      display.displayTime(now.hour(), now.minute(), true);  // Mostra l'ora
-      display.saveBaseDisplay();  // Salva lo stato senza neve
-      display.applySnowOverlay();  // Applica l'effetto neve
-      FastLED.show();  // Aggiorna il display con la neve
-      showTime = true;  // Cambia alla visualizzazione dell'ora
-      
+      previousMillis = currentMillis;
+      display.displayTime(now.hour(), now.minute(), true);
+      display.saveBaseDisplay();
+      display.applySnowOverlay();
+      FastLED.show();
+      showTime = true;
     }
   }
   
-  // Aggiorna la visualizzazione della neve continuamente (ogni 200ms circa)
-  // Questo permette alla neve di cadere in modo fluido anche tra i cambi di visualizzazione
+  // Aggiorna la visualizzazione della neve continuamente
   static unsigned long lastSnowDisplay = 0;
   if (millis() - lastSnowDisplay >= 200) {
     lastSnowDisplay = millis();
     display.applySnowOverlay();
     FastLED.show();
+  }
+}
+
+void loop() {
+  // Controlla i comandi WebSocket
+  if (wsManager.hasCommand()) {
+    GameCommand cmd = wsManager.getCommand();
+    
+    // Se riceviamo START_SNAKE, passiamo alla modalità gioco
+    if (cmd == CMD_START_SNAKE) {
+      currentMode = MODE_GAME;
+      display.enableSnow(false); // Disabilita la neve durante il gioco
+      snakeGame.handleCommand(cmd);
+      Serial.println("Switched to GAME mode");
+    }
+    // Se riceviamo STOP_GAME, torniamo alla modalità orologio
+    else if (cmd == CMD_STOP_GAME) {
+      snakeGame.handleCommand(cmd);
+      currentMode = MODE_CLOCK;
+      display.enableSnow(settings.getUseSnow()); // Riabilita la neve
+      Serial.println("Switched to CLOCK mode");
+    }
+    // Altri comandi vanno al gioco
+    else {
+      snakeGame.handleCommand(cmd);
+    }
+  }
+  
+  // Esegui la logica appropriata in base alla modalità
+  if (currentMode == MODE_CLOCK) {
+    runClockMode();
+  } 
+  else if (currentMode == MODE_GAME) {
+    snakeGame.update();
+    
+    // Se il gioco è finito, torna automaticamente alla modalità orologio dopo 3 secondi
+    if (snakeGame.getState() == GAME_OVER) {
+      static unsigned long gameOverTime = 0;
+      if (gameOverTime == 0) {
+        gameOverTime = millis();
+      }
+      
+      if (millis() - gameOverTime > 3000) {
+        currentMode = MODE_CLOCK;
+        display.enableSnow(settings.getUseSnow());
+        gameOverTime = 0;
+        Serial.println("Auto-switched to CLOCK mode after game over");
+      }
+    }
   }
 }

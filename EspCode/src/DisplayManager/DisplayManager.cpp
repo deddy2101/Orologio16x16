@@ -144,8 +144,6 @@ void DisplayManager::displayTime(int hours, int minutes, bool fade)
   int minTens = minutes / 10;
   int minOnes = minutes % 10;
 
-  // FastLED.clear(); // Pulisci la matrice di LED
-  // facciamo un fade out per non avere un cambio di colore troppo brusco usando setBrightness
   if (fade)
   {
     fadeOut();
@@ -628,4 +626,54 @@ void DisplayManager::applySnowOverlay() {
             }
         }
     }
+}
+
+// ============================================
+// FUNZIONI PER IL GIOCO SNAKE
+// ============================================
+
+void DisplayManager::clearDisplay() {
+    FastLED.clear();
+}
+
+void DisplayManager::drawSnakeGame(Position* snake, int snakeLength, Position food) {
+    // Pulisci il display
+    FastLED.clear();
+    
+    // Disegna il serpente
+    for (int i = 0; i < snakeLength; i++) {
+        int x = snake[i].x;
+        int y = snake[i].y;
+        
+        if (x >= 0 && x < MATRIX_WIDTH && y >= 0 && y < MATRIX_HEIGHT) {
+            // La testa è più luminosa (verde lime), il corpo è verde scuro
+            CRGB color = (i == 0) ? CRGB::Lime : CRGB::Green;
+            
+            // Ottieni l'indice LED dalla mappa
+            int matrixIndex = y * MATRIX_WIDTH + x;
+            int ledIndex = ledMap[matrixIndex];
+            
+            if (ledIndex >= 0 && ledIndex < numLeds) {
+                leds[ledIndex] = color;
+            }
+        }
+    }
+    
+    // Disegna il cibo (rosso lampeggiante)
+    if (millis() % 500 < 250) { // Lampeggia ogni mezzo secondo
+        int x = food.x;
+        int y = food.y;
+        
+        if (x >= 0 && x < MATRIX_WIDTH && y >= 0 && y < MATRIX_HEIGHT) {
+            int matrixIndex = y * MATRIX_WIDTH + x;
+            int ledIndex = ledMap[matrixIndex];
+            
+            if (ledIndex >= 0 && ledIndex < numLeds) {
+                leds[ledIndex] = CRGB::Red;
+            }
+        }
+    }
+    
+    // Mostra il risultato
+    FastLED.show();
 }
