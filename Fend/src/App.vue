@@ -4,12 +4,15 @@ import Header from "@/components/Header.vue";
 import Body from "@/components/Body.vue";
 import Menu from "@/components/Menu.vue";
 import Game from "@/components/Game.vue";
+import PingPong from "@/components/PingPong.vue";
 
-const currentView = ref('menu'); // 'menu', 'settings', 'game'
+const currentView = ref('menu'); // 'menu', 'settings', 'game', 'pong'
 
 const handleMenuSelect = (option) => {
   if (option === 'game') {
     currentView.value = 'game';
+  } else if (option === 'pong') {
+    currentView.value = 'pong';
   } else if (option === 'settings') {
     currentView.value = 'settings';
   }
@@ -36,6 +39,20 @@ const goBackToMenu = () => {
       Torna al Menu
     </button>
     <Game />
+  </div>
+
+  <!-- Gioco Ping Pong -->
+  <div v-else-if="currentView === 'pong'" class="relative">
+    <button
+        class="btn btn-ghost gap-2 fixed top-4 left-4 z-50 bg-base-100/90 backdrop-blur-sm shadow-lg hover:bg-base-100"
+        @click="goBackToMenu"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+      </svg>
+      Torna al Menu
+    </button>
+    <PingPong />
   </div>
 
   <!-- Impostazioni (vista originale) -->

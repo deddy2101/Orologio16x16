@@ -9,6 +9,12 @@ const messageType = ref('info');
 const showMessage = ref(false);
 let reconnectInterval = null;
 
+// Joystick state
+const isDragging = ref(false);
+const joystickX = ref(0); // -1 a 1
+const joystickY = ref(0); // -1 a 1
+const lastDirection = ref('');
+
 // Ottiene l'URL WebSocket dall'indirizzo corrente
 const getWebSocketUrl = () => {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -70,7 +76,6 @@ const sendCommand = (cmd) => {
   if (ws.value && ws.value.readyState === WebSocket.OPEN) {
     ws.value.send(cmd);
     console.log('Sent:', cmd);
-    displayMessage(`Command: ${cmd}`, 'info');
   } else {
     displayMessage('Non connesso!', 'error');
   }
@@ -84,6 +89,72 @@ const displayMessage = (text, type) => {
   setTimeout(() => {
     showMessage.value = false;
   }, 3000);
+};
+
+// Joystick handlers
+const handleJoystickStart = (event) => {
+  isDragging.value = true;
+  updateJoystickPosition(event);
+};
+
+const handleJoystickMove = (event) => {
+  if (!isDragging.value) return;
+  event.preventDefault();
+  updateJoystickPosition(event);
+  sendDirectionCommand();
+};
+
+const handleJoystickEnd = () => {
+  isDragging.value = false;
+  joystickX.value = 0;
+  joystickY.value = 0;
+  lastDirection.value = '';
+};
+
+const updateJoystickPosition = (event) => {
+  const touch = event.touches ? event.touches[0] : event;
+  const joystickElement = event.currentTarget;
+  const rect = joystickElement.getBoundingClientRect();
+
+  // Calcola il centro del joystick
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+
+  // Calcola la posizione relativa (-1 a 1)
+  const deltaX = touch.clientX - centerX;
+  const deltaY = touch.clientY - centerY;
+
+  // Limita il movimento al raggio del joystick
+  const maxRadius = rect.width / 2;
+  const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+  if (distance > maxRadius) {
+    const angle = Math.atan2(deltaY, deltaX);
+    joystickX.value = Math.cos(angle);
+    joystickY.value = Math.sin(angle);
+  } else {
+    joystickX.value = deltaX / maxRadius;
+    joystickY.value = deltaY / maxRadius;
+  }
+};
+
+const sendDirectionCommand = () => {
+  // Determina la direzione principale
+  let direction = '';
+
+  if (Math.abs(joystickX.value) > Math.abs(joystickY.value)) {
+    // Movimento orizzontale predominante
+    direction = joystickX.value > 0.3 ? 'RIGHT' : joystickX.value < -0.3 ? 'LEFT' : '';
+  } else {
+    // Movimento verticale predominante
+    direction = joystickY.value > 0.3 ? 'DOWN' : joystickY.value < -0.3 ? 'UP' : '';
+  }
+
+  // Invia comando solo se la direzione è cambiata
+  if (direction && direction !== lastDirection.value) {
+    sendCommand(direction);
+    lastDirection.value = direction;
+  }
 };
 
 const handleKeydown = (event) => {
@@ -172,27 +243,59 @@ onUnmounted(() => {
           </button>
         </div>
 
-        <!-- D-Pad -->
-        <div class="grid grid-cols-3 gap-2 w-fit mx-auto mb-6">
-          <div></div>
-          <button class="btn btn-primary btn-square btn-lg text-2xl" @click="sendCommand('UP')">
-            ▲
-          </button>
-          <div></div>
+        <!-- Virtual Joystick -->
+        <div class="mb-6">
+          <div class="alert alert-info mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="text-sm">Trascina il joystick per controllare il serpente</span>
+          </div>
 
-          <button class="btn btn-primary btn-square btn-lg text-2xl" @click="sendCommand('LEFT')">
-            ◄
-          </button>
-          <div></div>
-          <button class="btn btn-primary btn-square btn-lg text-2xl" @click="sendCommand('RIGHT')">
-            ►
-          </button>
+          <div class="flex justify-center">
+            <div
+                class="relative w-64 h-64 rounded-full bg-gradient-to-br from-purple-400 to-indigo-600 shadow-2xl cursor-pointer select-none"
+                @touchstart="handleJoystickStart"
+                @touchmove="handleJoystickMove"
+                @touchend="handleJoystickEnd"
+                @mousedown="handleJoystickStart"
+                @mousemove="handleJoystickMove"
+                @mouseup="handleJoystickEnd"
+                @mouseleave="handleJoystickEnd"
+            >
+              <!-- Outer Ring -->
+              <div class="absolute inset-4 rounded-full border-4 border-white/30"></div>
 
-          <div></div>
-          <button class="btn btn-primary btn-square btn-lg text-2xl" @click="sendCommand('DOWN')">
-            ▼
-          </button>
-          <div></div>
+              <!-- Center Dot -->
+              <div class="absolute top-1/2 left-1/2 w-4 h-4 bg-white/50 rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
+
+              <!-- Direction Indicators -->
+              <div class="absolute top-4 left-1/2 transform -translate-x-1/2 text-white/60 font-bold text-lg">▲</div>
+              <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white/60 font-bold text-lg">▼</div>
+              <div class="absolute top-1/2 left-4 transform -translate-y-1/2 text-white/60 font-bold text-lg">◄</div>
+              <div class="absolute top-1/2 right-4 transform -translate-y-1/2 text-white/60 font-bold text-lg">►</div>
+
+              <!-- Joystick Stick -->
+              <div
+                  class="absolute top-1/2 left-1/2 w-20 h-20 bg-white rounded-full shadow-lg transform -translate-x-1/2 -translate-y-1/2 transition-transform"
+                  :style="{
+                  transform: `translate(calc(-50% + ${joystickX * 72}px), calc(-50% + ${joystickY * 72}px))`
+                }"
+              >
+                <!-- Inner Circle -->
+                <div class="absolute inset-2 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600"></div>
+
+                <!-- Highlight -->
+                <div class="absolute top-2 left-2 w-6 h-6 bg-white/40 rounded-full blur-sm"></div>
+              </div>
+
+              <!-- Active Indicator -->
+              <div
+                  v-if="isDragging"
+                  class="absolute inset-0 rounded-full bg-white/10 animate-pulse"
+              ></div>
+            </div>
+          </div>
         </div>
 
         <!-- Keyboard Hint -->
@@ -229,5 +332,16 @@ onUnmounted(() => {
 }
 .fade-enter-from, .fade-leave-to {
   opacity: 0;
+}
+
+.select-none {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Previeni il drag dell'immagine */
+img {
+  pointer-events: none;
 }
 </style>

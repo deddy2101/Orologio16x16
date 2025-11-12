@@ -236,7 +236,7 @@ void PingPongGame::update() {
 void PingPongGame::handleCommand(GameCommand cmd, int player) {
     // Gestisce i comandi di controllo del gioco
     switch (cmd) {
-        case CMD_START_SNAKE:  // Riutilizziamo per "START_PONG"
+        case CMD_START_PONG:
             if (state == PONG_READY || state == PONG_GAME_OVER) {
                 reset();
                 state = PONG_RUNNING;

@@ -18,15 +18,27 @@ const selectOption = (option) => {
 
         <!-- Menu Options -->
         <div class="w-full space-y-4">
-          <!-- Play Button -->
+          <!-- Snake Game Button -->
           <button
               class="btn btn-lg w-full h-auto py-6 flex-col gap-3 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 border-0 text-white"
               @click="selectOption('game')"
           >
-            <span class="text-5xl">🎮</span>
+            <span class="text-5xl">🐍</span>
             <div class="flex flex-col gap-1">
               <span class="text-2xl font-bold">Gioca a Snake</span>
-              <span class="text-sm opacity-80 font-normal">Controlla il gioco Snake</span>
+              <span class="text-sm opacity-80 font-normal">Gioco singolo giocatore</span>
+            </div>
+          </button>
+
+          <!-- Ping Pong Game Button -->
+          <button
+              class="btn btn-lg w-full h-auto py-6 flex-col gap-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 border-0 text-white"
+              @click="selectOption('pong')"
+          >
+            <span class="text-5xl">🏓</span>
+            <div class="flex flex-col gap-1">
+              <span class="text-2xl font-bold">Gioca a Ping Pong</span>
+              <span class="text-sm opacity-80 font-normal">Due giocatori - Controllo touch</span>
             </div>
           </button>
 
